@@ -1,0 +1,189 @@
+{
+	"nome" : "Tecnologia em Gestão Comercial",
+	"periodos" : [
+		{
+			"id" : "p1",
+			"nome" : "1º Período",
+			"disciplinas" : [
+				{
+					"id" : "gco11",
+					"nome" : "Comportamento do Consumidor",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco12",
+					"nome" : "Economia e Mercado",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco13",
+					"nome" : "Fundamentos da Administração",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco14",
+					"nome" : "Informática Básica",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco15",
+					"nome" : "Introdução ao Direito Público e Privado",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco16",
+					"nome" : "Língua Portuguesa",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco17",
+					"nome" : "Matemática Financeira",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco18",
+					"nome" : "Responsabilidade Socioambiental",
+					"professor" : "Fulano"
+				}
+			]
+		},
+		{
+			"id" : "p2",
+			"nome" : "2º Período",
+			"disciplinas" : [
+				{
+					"id" : "gco21",
+					"nome" : "Contabilidade Geral",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco22",
+					"nome" : "Estratégia Organizacional",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco23",
+					"nome" : "Fundamentos da Metodologia",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco24",
+					"nome" : "Legislação Comercial e Tributária",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco25",
+					"nome" : "Libras",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco26",
+					"nome" : "Língua Inglesa para Fins Específicos",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco27",
+					"nome" : "Organização, Sistemas e Métodos",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco28",
+					"nome" : "Pesquisa de Mercado",
+					"professor" : "Fulano"
+				}
+			]
+		},
+		{
+			"id" : "p3",
+			"nome" : "3º Período",
+			"disciplinas" : [
+				{
+					"id" : "gco31",
+					"nome" : "Administração de Marketing",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco32",
+					"nome" : "Contabilidade Gerencial",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco33",
+					"nome" : "Fundamentos de Gestão de Pessoas",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco34",
+					"nome" : "Gestão de Operações em Atacado e Varejo",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco35",
+					"nome" : "Gestão de Suprimeitos e Logística",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco36",
+					"nome" : "Legislação Social",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco37",
+					"nome" : "Métodos e Técnicas de Pesquisa",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco38",
+					"nome" : "Publicidade e Propaganda",
+					"professor" : "Fulano"
+				}
+			]
+		},
+		{
+			"id" : "p4",
+			"nome" : "4º Período",
+			"disciplinas" : [
+				{
+					"id" : "gco41",
+					"nome" : "Administração de Pessoas",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco42",
+					"nome" : "Administração de Vendas",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco43",
+					"nome" : "Administração Financeira e Orçamentária",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco44",
+					"nome" : "Automação Comercial",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco45",
+					"nome" : "Comércio Eletrônico",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco46",
+					"nome" : "Empreendedorismo",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco47",
+					"nome" : "Merchandising no PDV",
+					"professor" : "Fulano"
+				},
+				{
+					"id" : "gco48",
+					"nome" : "TCC",
+					"professor" : "Fulano"
+				}
+			]
+		}
+	]
+}
