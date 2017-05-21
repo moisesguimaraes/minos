@@ -12,9 +12,9 @@ jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
 
 data_dir = os.path.join(os.path.dirname(__file__), "data")
 gestao_comercial_data = json.loads(
-    open(os.path.join(data_dir, "gestao-comercial.json")).read())
+    open(os.path.join(data_dir, "gestao_comercial.json")).read())
 
-gestao_comercial_html = jinja_env.get_template("index.html").render(
+gestao_comercial_html = jinja_env.get_template("gestao_comercial.html").render(
     curso=gestao_comercial_data)
 
 class Handler(webapp2.RequestHandler):
