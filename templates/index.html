@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="/disciplinas" method="post">
+
+{% for p in periodos %}
+
+<h3>p.nome</h3>
+
+	{% for d in p.disciplinas %}
+		<div>
+			<input type="checkbox" name="d" value="{{ d.id }}">
+			<label>{{ d.nome }}</label>
+		</div>
+	{% endfor %}
+
+{% endfor %}
+<h3>P1</h3>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-comportamento-do-consumidor">
+	<label>Comportamento do Consumidor</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-economia-e-mercado">
+	<label>Economia e Mercado</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-fundamentos-da-administracao">
+	<label>Fundamentos da Administração</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-informatica-basica">
+	<label>Informática Básica</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-introducao-ao-direito-público-e-privado">
+	<label>Introdução ao Direito Público e Privado</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-lingua-portuguesa">
+	<label>Língua Portuguesa</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-matematica-financeira">
+	<label>Matemática Financeira</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p1-responsabilidade-socioambiental">
+	<label>Responsabilidade Socioambiental</label>
+</div>
+
+<h3>P2</h3>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-contabilidade-geral">
+	<label>Contabilidade Geral</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-estrategia-organizacional">
+	<label>Estratégia Organizacional</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-fundamentos-da-metodologia">
+	<label>Fundamentos da Metodologia</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-legislacao-comercial-e-tributaria">
+	<label>Legislação Comercial e Tributária</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-libras">
+	<label>Libras</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-lingua-inglesa-para-fins-especificos">
+	<label>Língua Inglesa para Fins Específicos</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-organizacao-sistemas-e-metodos">
+	<label>Organização, Sistemas e Métodos</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p2-pesquisa-de-mercado">
+	<label>Pesquisa de Mercado</label>
+</div>
+
+<h3>P3</h3>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-administracao-de-marketing">
+	<label>Administração de Marketing</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-contabilidade-gerencial">
+	<label>Contabilidade Gerencial</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-fundamentos-de-gestao-de-pessoas">
+	<label>Fundamentos de Gestão de Pessoas</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-gestao-de-operacoes-em-atacado-e-varejo">
+	<label>Gestão de Operações em Atacado e Varejo</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-gestao-de-suprimeitos-e-logistica">
+	<label>Gestão de Suprimeitos e Logística</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-legislacao-social">
+	<label>Legislação Social</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-metodos-e-tecnicas-de-pesquisa">
+	<label>Métodos e Técnicas de Pesquisa</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p3-publicidade-e-propaganda">
+	<label>Publicidade e Propaganda</label>
+</div>
+
+<h3>P4</h3>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-administracao-de-pessoas">
+	<label>Administração de Pessoas</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-administracao-de-vendas">
+	<label>Administração de Vendas</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-administracao-financeira-e-orcamentaria">
+	<label>Administração Financeira e Orçamentária</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-automacao-comercial">
+	<label>Automação Comercial</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-comercio-eletronico">
+	<label>Comércio Eletrônico</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-empreendedorismo">
+	<label>Empreendedorismo</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-merchandising-no-pdv">
+	<label>Merchandising no PDV</label>
+</div>
+
+<div>
+	<input type="checkbox" name="disciplina" value="p4-tcc">
+	<label>TCC</label>
+</div>
+
+<div><input type="submit" value="Adicionar"></div>
+
+</form>
+
+{% endblock %}
