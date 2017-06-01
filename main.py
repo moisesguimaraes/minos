@@ -34,7 +34,7 @@ class MainHandler(Handler):
 
 class DisciplinasHandler(Handler):
     def post(self):
-        self.response.write(self.request.get_all('d'))
+        self.write(self.request.get_all('d'))
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
