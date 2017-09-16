@@ -18,19 +18,25 @@ gestao_comercial_data = json.loads(open(os.path.join(data_dir, "gestao_comercial
 
 gestao_comercial_html = jinja_env.get_template("gestao_comercial.html").render(curso=gestao_comercial_data)
 
+data_cookies = dict()
 
 
-class Admin(ndb.model):
+class Admin(ndb.Model):
     usuario = ndb.StringProperty(indexed=False)
     senha = ndb.StringProperty(indexed=False)
     cookie = ndb.StringProperty(indexed=False)
 
 
-class Aluno(ndb.model):
+class Aluno(ndb.Model):
     matricula = ndb.StringProperty(indexed=False)
     materias = ndb.JsonProperty()
     finalizado = ndb.BooleanProperty()
     codigo = ndb.StringProperty(indexed=False)
+
+
+class Disciplinas(ndb.Model):
+    nome = ndb.StringProperty(indexed=False)
+    alunos = ndb.PickleProperty()
 
 
 class Handler(webapp2.RequestHandler):
@@ -39,8 +45,8 @@ class Handler(webapp2.RequestHandler):
         self.response.out.write(*a, **kw)
 
     def render_str(self, template, **kw):
-        template = jinja_env.get_template(template)
-        return template.render(kw)
+        t = jinja_env.get_template(template)
+        return t.render(kw)
 
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
@@ -84,7 +90,7 @@ class Administrador(Handler):
     def get(self):
         cookie = self.request.headers.get("cookie")
         admin = Admin(parent= ndb.Key('admin','admin'))
-        if cookie == admin.cookie:
+        if cookie in data_cookies.keys():
             self.render("administrador.html", "")
         else:
             self.redirect("/login")
@@ -92,8 +98,9 @@ class Administrador(Handler):
     def post(self):
         cookie = self.request.headers.get("cookie")
         admin = Admin(parent= ndb.Key('admin','admin'))
-        if cookie == admin.cookie:
+        if cookie in data_cookies.keys():
             # tratar formulario submetido
+            pass
         else:
             self.redirect('/login')
 
@@ -107,6 +114,7 @@ class Formulario(Handler):
             if aluno.finalizado == True:
                 self.redirect('/#')
             else:
+                pass
                 """
                 então montar o questinario e devolver 
                 """
