@@ -6,6 +6,8 @@ import json
 import jinja2
 import webapp2
 
+from hashlib import sha224
+from datetime import datetime
 from google.appengine.ext import ndb
 
 template_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -24,19 +26,29 @@ data_cookies = dict()
 class Admin(ndb.Model):
     usuario = ndb.StringProperty(indexed=False)
     senha = ndb.StringProperty(indexed=False)
-    cookie = ndb.StringProperty(indexed=False)
 
 
 class Aluno(ndb.Model):
     matricula = ndb.StringProperty(indexed=False)
-    materias = ndb.JsonProperty()
     finalizado = ndb.BooleanProperty()
     codigo = ndb.StringProperty(indexed=False)
+    codigo_usado = ndb.BooleanProperty()
+
+class Pergunta(ndb.Model):
+    tipo = ndb.StringProperty(indexed=False)
+    enunciado = ndb.TextProperty()
+    resposta = ndb.PickleProperty()
 
 
-class Disciplinas(ndb.Model):
+class Formulario(ndb.Model):
     nome = ndb.StringProperty(indexed=False)
-    alunos = ndb.PickleProperty()
+    perguntas = ndb.StringProperty(Pergunta, repeated=True)
+
+
+class Disciplina(ndb.Model):
+    nome = ndb.StringProperty(indexed=False)
+    professor = ndb.StringProperty(indexed=False)
+    formulario = ndb.StructuredProperty(Formulario)
 
 
 class Handler(webapp2.RequestHandler):
@@ -66,20 +78,21 @@ class Login(Handler):
     def post(self):
         usuario = self.request.get('usuario')
         senha = self.request.get('senha')
-        admin = Admin(parent= ndb.Key('admin','admin'))
+        admin = Admin(parent=ndb.Key('admin','admin'))
         if usuario == admin.usuario and senha == admin.senha :
-            admin.cookie = ""
-            self.response.headers['cookie'] = ""
+            dtime = datetime.now()
+            temp_cookie = sha224(dtime.isoformat()).hexdigest()
+            data_cookies[temp_cookie] = admin
+            self.response.headers.add_header("Cookie", temp_cookie)
             self.redirect('/admin')
         else:
             self.redirect('/login')
 
     def delete(self):
-        cookie = self.request.headers.get("cookie")
-        admin = Admin(parent= ndb.Key('admin','admin'))
-        if cookie == True:
-            admin.cookie = ""
-            self.response.headers['cookie'] = ""
+        cookie = self.request.headers.get("Cookie")
+        if cookie in data_cookies.keys():
+            data_cookies.pop(cookie)
+            self.response.headers.add_header("Cookie", None)
             self.redirect('/login')
         else:
             self.redirect('/login')
@@ -91,7 +104,7 @@ class Administrador(Handler):
         cookie = self.request.headers.get("cookie")
         admin = Admin(parent= ndb.Key('admin','admin'))
         if cookie in data_cookies.keys():
-            self.render("administrador.html", "")
+            self.render(template_dir + "/administrador.html", "")
         else:
             self.redirect("/login")
 
@@ -105,36 +118,54 @@ class Administrador(Handler):
             self.redirect('/login')
 
 
-class Formulario(Handler):
+class Formularios(Handler):
 
     def get(self):
         matricula = self.request.get('matricula', '')
         aluno = Aluno(parent=ndb.Key('matricula',''))
         if matricula != '' and matricula == aluno.matricula :
             if aluno.finalizado == True:
-                self.redirect('/#')
+                self.redirect('/#two')
             else:
                 pass
                 """
                 então montar o questinario e devolver 
                 """
         else:
-            self.redirect('/#')
+            self.redirect('/#two')
     
     def post(self):
         matricula = self.request.get('matricula', '')
         disciplinas = self.request.get_all('d')
         codigo = self.request.get('c')
-        aluno = Aluno(parent=ndb.Key('matricula',''))
+        aluno = Aluno(parent=ndb.Key(matricula,''))
         #processar as disciplinas respondidas
         aluno.finalizado = True
         aluno.codigo = codigo
         self.redirect('/#')
 
 
+class Codigo(Handler):
+
+    def get(self):
+        self.write(template_dir + "codigo.html")
+
+    def post(self):
+        codigo = self.request.get('c')
+        matricula = self.request.get('matricula')
+        aluno = Aluno(parent=ndb.key(matricula, ''))
+        if matricula == aluno.matricula and codigo == aluno.codigo and aluno.codigo_usado != True:
+            aluno.codigo_usado = True
+            #responder com codigo valido
+        else:
+            pass
+            #responder com codigo não valido
+
+
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
     ('/admin', Administrador),
     ('/login', Login),
-    ('/avaliar', Formulario),
+    ('/avaliar', Formularios),
+    ('/professor', Codigo)
 ], debug=True)
