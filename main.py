@@ -23,36 +23,8 @@ gestao_comercial_html = jinja_env.get_template("gestao_comercial.html").render(c
 data_cookies = dict()
 
 
-class Admin(ndb.Model):
-    usuario = ndb.StringProperty(indexed=False)
-    senha = ndb.StringProperty(indexed=False)
-
-
-class Aluno(ndb.Model):
-    matricula = ndb.StringProperty(indexed=False)
-    finalizado = ndb.BooleanProperty()
-    codigo = ndb.StringProperty(indexed=False)
-    codigo_usado = ndb.BooleanProperty()
-
-class Pergunta(ndb.Model):
-    tipo = ndb.StringProperty(indexed=False)
-    enunciado = ndb.TextProperty()
-    resposta = ndb.PickleProperty()
-
-
-class Formulario(ndb.Model):
-    nome = ndb.StringProperty(indexed=False)
-    perguntas = ndb.StringProperty(Pergunta, repeated=True)
-
-
-class Disciplina(ndb.Model):
-    nome = ndb.StringProperty(indexed=False)
-    professor = ndb.StringProperty(indexed=False)
-    formulario = ndb.StructuredProperty(Formulario)
-
-
 class Handler(webapp2.RequestHandler):
-    
+
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
@@ -69,6 +41,64 @@ class MainHandler(Handler):
     def get(self):
         self.write(gestao_comercial_html)
 
+
+class Aluno(Handler):
+
+    def get(self):
+        self.render("loginAluno.html")
+
+    def post(self):
+        matricula = self.request.get('mat')
+        # aluno = ndb.Key("mat", matricula).get()
+        aluno = {"matricula": 123}
+        if matricula == aluno['matricula']:
+            url1 = {"mat": matricula}
+            self.redirect('/formularios?' + urllib.urlencode(url1))
+        else:
+            self.redirect('/aluno')
+
+
+class Formularios(Handler):
+
+    def get(self):
+        matricula = self.request.get('mat')
+        # aluno = ndb.Key("mat", matricula).get()
+        aluno = {"matricula": 123, "formularios" :  }
+        if matricula == aluno.matricula:
+            self.render("formularios.html", disciplinas)
+        else:
+            self.redirect('/aluno')
+
+
+class Avaliacao(Handler):
+    def get(self):
+        quest = {
+            "formulario": {
+                "titulo": "formulario 1",
+                "url": "/avaliar?123",
+                "questao": {
+                    "numero": 1,
+                    "enunciado": "com quantos paus se faz uma canoa?",
+                    "materias": {
+                        "materia1": {"nome": "Portugues", "respostas": [1, 2, 3]},
+                        "materia2": {"nome": "Matematica", "respostas": [1, 2, 3]},
+                        "materia3": {"nome": "Biologia", "respostas": [1, 2, 3]},
+                        "materia4": {"nome": "Filosofia", "respostas": [1, 2, 3]},
+                        "materia5": {"nome": "Quimica", "respostas": [1, 2, 3]}},
+                    "tipo": "texto"
+                 }
+            }
+        }
+        t = jinja_env.get_template("formulario3.html")
+        self.response.out.write(t.render(quest))
+    """def get(self):
+        form = self.request.get("form")
+        mat = self.request.get("mat")
+        aluno = ndb.Key('mat', mat).get()
+        if mat == aluno.matricula:
+            progresso = aluno.progresso[form]
+            disciplinas = aluno.disciplinas
+            formulario = disciplinas[0].formulario"""
 
 class Login(Handler):
 
@@ -121,8 +151,8 @@ class Administrador(Handler):
 class Formularios(Handler):
 
     def get(self):
-        matricula = self.request.get('matricula', '')
-        aluno = Aluno(parent=ndb.Key('matricula',''))
+        matricula = self.request.get('matricula')
+        aluno = Aluno(parent=ndb.Key('matricula'))
         if matricula != '' and matricula == aluno.matricula :
             if aluno.finalizado == True:
                 self.redirect('/#two')
@@ -164,8 +194,10 @@ class Codigo(Handler):
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
+    ('/aluno', Aluno),
+    ('/formularios', Formularios),
+    ('/avaliar', Avaliacao),
     ('/admin', Administrador),
     ('/login', Login),
-    ('/avaliar', Formularios),
     ('/professor', Codigo)
 ], debug=True)
