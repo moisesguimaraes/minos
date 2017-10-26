@@ -63,7 +63,7 @@ class Formularios(Handler):
     def get(self):
         matricula = self.request.get('mat')
         # aluno = ndb.Key("mat", matricula).get()
-        aluno = {"matricula": 123, "formularios" :  }
+        aluno = {"matricula": 123, "formularios" : 1 }
         if matricula == aluno.matricula:
             self.render("formularios.html", disciplinas)
         else:
