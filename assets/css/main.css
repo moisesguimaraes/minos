@@ -25,6 +25,7 @@
 	body {
 		line-height: 1;
 	}
+	body#matricula { background: #23436b; }
 
 	ol, ul {
 		list-style: none;
@@ -3925,6 +3926,8 @@
 		-ms-transition: -ms-filter 0.25s ease;
 		transition: filter 0.25s ease;
 	}
+	
+
 
 	#menu {
 		-moz-align-items: center;
@@ -4248,15 +4251,17 @@
 /* Footer */
 
 	#footer {
-		background-image: -moz-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-		background-image: -webkit-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-		background-image: -ms-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-		background-image: linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
+		background-color: #23436b
+		background-image: -moz-linear-gradient(to top, rgb(35,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
+		background-image: -webkit-linear-gradient(to top, rgb(35,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
+		background-image: -ms-linear-gradient(to top, rgb(435,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
+		background-image: linear-gradient(to top, rgb(35,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
 		background-attachment: fixed;
 		background-position: center center;
 		background-size: cover;
 		padding: 12em 0 2em;
 	}
+	
 
 		#footer > .inner {
 			display: -moz-flex;
