@@ -4251,7 +4251,7 @@
 /* Footer */
 
 	#footer {
-		background-color: #23436b
+		background-color: #23436b;
 		background-image: -moz-linear-gradient(to top, rgb(35,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
 		background-image: -webkit-linear-gradient(to top, rgb(35,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
 		background-image: -ms-linear-gradient(to top, rgb(435,67,107), rgb(35,67,107)), url("../../images/banner.jpg");
