@@ -1,161 +1,98 @@
 <!DOCTYPE HTML>
 <!--
-	Atmosphere by Pixelarity
-	pixelarity.com | hello@pixelarity.com
-	License: pixelarity.com/license
+    Atmosphere by Pixelarity
+    pixelarity.com | hello@pixelarity.com
+    License: pixelarity.com/license
 -->
 <html>
 
 <head>
-	<title>Formulários</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
-	<link rel="stylesheet" href="../assets/css/main.css" />
-	<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
-	<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+    <title>Formulários</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
 </head>
 
 <body>
 
-	<!-- Page wrapper -->
-	<div id="page-wrapper">
+    <!-- Page wrapper -->
+    <div id="page-wrapper">
 
-		<!-- Header -->
-		<header id="header">
-			<span class="logo">
-				<a href="index.html">Formulários</a>
-				<span>- Minos</span>
-			</span>
-			<a href="#menu">Menu</a>
-		</header>
+        <!-- Header -->
+        <header id="header">
+            <span class="logo">
+                <a href="/formularios">Formulários</a>
+                <span>- Minos</span>
+            </span>
+            <a href="#menu">Menu</a>
+        </header>
 
-		<!-- Nav -->
-		<nav id="menu">
-			<div class="inner">
-				<h2>Menu</h2>
-				<ul class="links">
-					<li>
-						<a href="index.html">Home</a>
-					</li>
-					<li>
-						<a href="generic.html">Generic</a>
-					</li>
-					<li>
-						<a href="elements.html">Elements</a>
-					</li>
-					<li>
-						<a href="#">Log In</a>
-					</li>
-					<li>
-						<a href="#">Sign Up</a>
-					</li>
-				</ul>
-				<a class="close">Close</a>
-			</div>
-		</nav>
-	</div>
+        <!-- Nav -->
+        <nav id="menu">
+            <div class="inner">
+                <h2>Menu</h2>
+                <ul class="links">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    <li>
+                        <a href="/login">Administrador</a>
+                    </li>
+                    <li>
+                        <a href="/aluno">Aluno</a>
+                    </li>
+                    <li>
+                        <a href="/professor">Professor</a>
+                    </li>
+                </ul>
+                <a class="close">Close</a>
+            </div>
+        </nav>
 
-	<!-- Main -->
-	<section id="main" class="wrapper alt">
-		<div class="inner">
-			<section class="spotlights">
-				<article>
-					<header class="major">
-						<p>Formulário 01</p>
-						<i>
-							<h4>Descrição do Form</h4>
-						</i>
-						<h5>
-							<b>INSIRA AQUI A DESCRIÇÃO DO FORMULÁRIO</b>
-						</h5>
-					</header>
-					<form>
-						<input type="submit" class="big special" value="Avaliar">
-						<p style="text-align:right;">Progresso: 0%</p>
-					</form>
-				</article>
+        <!-- Main -->
+        <section id="main" class="wrapper alt">
+            <div class="inner">
+                <section class="spotlights">
+                    {% for formulario in formularios -%}
+                    <article>
+                        <header class="major">
+                            <p>{{ formulario.titulo }}</p>
+                            <!-- <i>
+                            <h4>Descrição do Form</h4>
+                        </i> -->
+                            <h5>
+                                <b>{{ formulario.descricao }}</b>
+                            </h5>
+                        </header>
+                        <ul class="actions">
+                            <li><a href="/avaliar?form={{ formulario.codigo }}" class="button big special">Avaliar</a></li>
+                            <li><p style="text-align:right;">Progresso: {{ formulario.progresso }}%</p></li>
+                        </ul>
+                    </article>
+                    {%- endfor -%}
+                </section>
+            </div>
+        </section>
+        <!-- Footer -->
+        <footer id="footer">
+            <div class="copyright">
+                &copy; IFPB - Campus Guarabira. All rights reserved.
+            </div>
+        </footer>
 
-				<article>
-					<header class="major">
-						<p>Formulário 02</p>
-						<i>
-							<h4>Descrição do Form</h4>
-						</i>
-						<h5>
-							<b>INSIRA AQUI A DESCRIÇÃO DO FORMULÁRIO</b>
-						</h5>
+    </div>
 
-					</header>
-
-
-
-					<form>
-						<input type="submit" class="big special" value="Avaliar">
-						<p style="text-align:right;">Progresso: 0%</p>
-					</form>
-
-				</article>
-
-				<article>
-
-					<header class="major">
-						<p>Formulário 03</p>
-						<i>
-							<h4>Descrição do Form</h4>
-						</i>
-						<h5>
-							<b>INSIRA AQUI A DESCRIÇÃO DO FORMULÁRIO</b>
-						</h5>
-
-					</header>
-
-
-
-					<form>
-						<input type="submit" class="big special" value="Avaliar">
-						<p style="text-align:right;">Progresso: 0%</p>
-					</form>
-
-				</article>
-				<article>
-
-					<header class="major">
-						<p>Formulário 04</p>
-						<i>
-							<h4>Descrição do Form</h4>
-						</i>
-						<h5>
-							<b>INSIRA AQUI A DESCRIÇÃO DO FORMULÁRIO</b>
-						</h5>
-
-					</header>
-					<p style="text-align:right;">Progresso: 0%</p>
-					<form>
-						<input type="submit" class="big special" value="Avaliar">
-					</form>
-
-				</article>
-			</section>
-		</div>
-	</section>
-	<!-- Footer -->
-	<footer id="footer">
-		<div class="copyright">
-			&copy; Untitled. All rights reserved.
-		</div>
-	</footer>
-
-	</div>
-
-	<!-- Scripts -->
-	<script src="../assets/js/jquery.min.js"></script>
-	<script src="../assets/js/skel.min.js"></script>
-	<script src="../assets/js/util.js"></script>
-	<script src="../assets/js/jquery.scrollex.min.js"></script>
-	<script src="../assets/js/jquery.scrolly.min.js"></script>
-	<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-	<script src="../assets/js/main.js"></script>
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/skel.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/jquery.scrollex.min.js"></script>
+    <script src="../assets/js/jquery.scrolly.min.js"></script>
+    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+    <script src="../assets/js/main.js"></script>
 
 </body>
 

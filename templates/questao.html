@@ -1,0 +1,158 @@
+<!DOCTYPE HTML>
+<!--
+    Atmosphere by Pixelarity
+    pixelarity.com | hello@pixelarity.com
+    License: pixelarity.com/license
+-->
+<html>
+
+<head>
+    <title>Formulário</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+</head>
+
+<body>
+
+    <!-- Page wrapper -->
+    <div id="page-wrapper">
+
+        <!-- Header -->
+        <header id="header">
+            <span class="logo">
+                <a href="index.html">Formulário</a>
+                <span>- MINOS</span>
+            </span>
+            <a href="#menu">Menu</a>
+        </header>
+
+        <!-- Nav -->
+        <nav id="menu">
+            <div class="inner">
+                <h2>Menu</h2>
+                <ul class="links">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    <li>
+                        <a href="/login">Administrador</a>
+                    </li>
+                    <li>
+                        <a href="/aluno">Aluno</a>
+                    </li>
+                    <li>
+                        <a href="/professor">Professor</a>
+                    </li>
+                </ul>
+                <a class="close">Close</a>
+            </div>
+        </nav>
+
+        <!-- Main -->
+        <section id="main" class="wrapper alt">
+            <div class="inner">
+                <div class="box">
+                    <!-- Content -->
+                    <header class="major">
+                        <p>{{ page.formulario.titulo }}</p>
+                        <h2>Questão {{ page.numero }}</h2>
+                    </header>
+                    <center>
+                        <h1> {{ page.pergunta.enunciado }} </h1>
+                    </center>
+                    <center>
+                        <hr align="center" color="grey">
+                    </center>
+
+                    <form action="/avaliar?form={{ page.formulario.user_id }}" method="post">
+                        <h3>Respostas:</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <tbody>
+                                    {%- set ID = { 'ID' : 0} -%}
+                                    {% for materia in page.materias -%}
+                                    {%- if page.pergunta.tipo == 1 -%}
+                                    <tr>
+                                        <td>
+                                            <h3> {{ materia.titulo }}:</h3>
+                                        </td>
+                                        <td>
+                                            <textarea name="{{ materia }}" id="{{ ID }}" placeholder="Digite aqui sua resposta" rows="1" cols="50"></textarea> {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                        </td>
+                                    </tr>
+
+                                    {%- elif page.pergunta.tipo == 2 -%}
+                                    <tr>
+                                        <td>
+                                            <h3>{{ materia.titulo }}:</h3>
+                                        </td>
+                                        {% for resposta in page.pergunta.respostas -%}
+                                        <td>
+                                            <input id="{{ ID }}" type="radio" name="{{ materia }}" value="{{ resposta }}">
+                                            <label for="{{ ID }}">{{ resposta }}</label>
+                                            {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                        </td>
+                                        {%- endfor %}
+                                    </tr>
+
+                                    {%- else -%}
+                                    <tr>
+                                        <td>
+                                            <h3>{{ materia.titulo }}:</h3>
+                                        </td>
+                                        {% for resposta in page.pergunta.respostas -%}
+                                        <td>
+                                            <input id="{{ ID }}" type="checkbox" name="{{ materia }}" value="{{ resposta }}">
+                                            <label for="{{ ID }}"></label>{{ resposta }}</input>
+                                            {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                        </td>
+                                        {%- endfor %}
+                                    </tr>
+                                    {%- endif -%} {%- endfor %}
+                                </tbody>
+                            </table>
+
+                            <center>
+                                <hr align="center" color="grey">
+                            </center>
+                            <div class="12u$">
+                                <ul class="actions">
+                                    <center>
+                                        <li>
+                                            <a href="/formularios" class="button">Cancelar</a>
+                                        </li>
+                                        <li>
+                                            <input type="submit" value="Enviar resposta" />
+                                        </li>
+                                    </center>
+                                </ul>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <footer id="footer">
+            <div class="copyright">
+                &copy; IFPB - Campus Guarabira. All rights reserved.
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/skel.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/jquery.scrollex.min.js"></script>
+    <script src="../assets/js/jquery.scrolly.min.js"></script>
+    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+    <script src="../assets/js/main.js"></script>
+
+</body>
+
+</html>

@@ -10,27 +10,48 @@ class Admin(ndb.Model):
 
 
 class Pergunta(ndb.Model):
-    tipo = ndb.StringProperty(indexed=False)
+    user_id = ndb.IntegerProperty()
+    tipo = ndb.IntegerProperty()
     enunciado = ndb.TextProperty()
-    resposta = ndb.PickleProperty()
+    respostas = ndb.StringProperty(repeated=True)
 
 
 class Formulario(ndb.Model):
-    nome = ndb.StringProperty(indexed=False)
-    perguntas = ndb.StructuredProperty(Pergunta, repeated=True)
+    user_id = ndb.IntegerProperty()
+    titulo = ndb.StringProperty(indexed=False)
+    descricao = ndb.StringProperty(indexed=False)
+    perguntas = ndb.StringProperty(indexed=False, repeated=True)
+    materias = ndb.StringProperty(indexed=False, repeated=True)
+    alunos = ndb.StringProperty(repeated=True)
 
 
-class Disciplina(ndb.Model):
-    nome = ndb.StringProperty(indexed=False)
+class Materia(ndb.Model):
+    user_id = ndb.IntegerProperty()
+    titulo = ndb.StringProperty(indexed=False)
     professor = ndb.StringProperty(indexed=False)
-    formulario = ndb.StructuredProperty(Formulario)
     periodo = ndb.StringProperty(indexed=False)
 
 
 class Aluno(ndb.Model):
+    user_id = ndb.IntegerProperty()
     matricula = ndb.StringProperty(indexed=False)
-    finalizado = ndb.BooleanProperty()
+    nome = ndb.StringProperty(indexed=False)
+    periodo = ndb.StringProperty(indexed=False)
+
+
+class Codigo(ndb.Model):
+    nomeAluno = ndb.StringProperty(indexed=False)
+    periodo = ndb.StringProperty(indexed=False)
     codigo = ndb.StringProperty(indexed=False)
-    codigo_usado = ndb.BooleanProperty()
-    progresso = ndb.PickleProperty(default={})
-    """disciplinas = ndb.StructuredProperty(Disciplina, repeated=True)"""
+
+class Contador(ndb.Model):
+    id_perguntas = ndb.IntegerProperty() 
+    id_formularios = ndb.IntegerProperty()
+    id_materias = ndb.IntegerProperty()
+    maior_cod = ndb.IntegerProperty()
+
+class Resultado(ndb.Model):
+    aluno = ndb.IntegerProperty()
+    formulario = ndb.IntegerProperty()
+    enunciado = ndb.StringProperty(indexed=False)
+    respostas = ndb.StringProperty(indexed=False)

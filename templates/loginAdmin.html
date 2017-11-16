@@ -24,7 +24,7 @@
         <!-- Header -->
         <header id="header" class="alt">
             <span class="logo">
-                <a href="/">Avaliação de Curso</a>
+                <a href="/">Acesso da Administração</a>
                 <span>- Minos</span>
             </span>
             <a href="#menu">Menu</a>
@@ -55,20 +55,27 @@
         <!-- Footer -->
         <footer id="footer">
             <div class="inner">
-                <form action="/formularios" method="get">
+                <form action="/login" method="post">
                     <center>
-                        <h2>Avaliação de Curso</h2>
+                        <h2>Acesso ao Sistema</h2>
                         <h1>CST em Gestão Comercial</h1>
                         <div class="field half first">
-                            <label for="name">Name</label>
+                            <label for="user">Usuario</label>
                             <center>
-                                <input name="mat" id="name" type="text" placeholder="Matrícula">
+                                <input name="usuario" id="user" type="text" placeholder="Usuario" />
+                            </center>
+                        </div>
+
+                        <div class="field half first">
+                            <label for="senha">Senha</label>
+                            <center>
+                                <input name="senha" id="senha" type="text" placeholder="Senha" />
                             </center>
                         </div>
 
                         <ul class="actions">
                             <li>
-                                <input value="Avaliar" class="button big" type="submit">
+                                <input value="Enviar" class="button big" type="submit">
                             </li>
                         </ul>
                     </center>

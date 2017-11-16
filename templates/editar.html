@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<!--
+    Atmosphere by Pixelarity
+    pixelarity.com | hello@pixelarity.com
+    License: pixelarity.com/license
+-->
+<html>
+
+<head>
+    <title>Criar {{ page.titulo }}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+</head>
+
+<body>
+
+    <!-- Page wrapper -->
+    <div id="page-wrapper">
+
+        <!-- Header -->
+        <header id="header">
+            <span class="logo">
+                <a href="index.html">Administração</a>
+                <span>- MINOS</span>
+            </span>
+            <a href="#menu">Menu</a>
+        </header>
+
+        <!-- Nav -->
+        <nav id="menu">
+            <div class="inner">
+                <h2>Menu</h2>
+                <ul class="links">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    <li>
+                        <a href="/login">Administrador</a>
+                    </li>
+                    <li>
+                        <a href="/aluno">Aluno</a>
+                    </li>
+                    <li>
+                        <a href="/professor">Professor</a>
+                    </li>
+                </ul>
+                <a class="close">Close</a>
+            </div>
+        </nav>
+
+        <!-- Main -->
+        <section id="main" class="wrapper alt">
+            <div class="inner">
+                <section class="spotlights">
+                    <article>
+                        {%- if page.tipo == 1 -%}
+                        <header class="major">
+                            <p>Criar {{ page.titulo }}</p>
+                        </header>
+                        <form action="/criar{{ page.titulo | lower }}" method="post">
+                            <div class="row">
+                                <div class="9u 12u$(small)">
+                                    {%- if page.titulo | lower == "aluno" -%}
+                                    <label for="inp1">Matricula:</label>
+                                    <input id="inp1" type="text" class="demo-name" name="matricula" />
+                                    <label for="inp2">Nome:</label>
+                                    <input id="inp2" type="text" class="demo-name" name="nome" />
+                                    <label for="inp3">Periodo:</label>
+                                    <input id="inp3" type="text" class="demo-name" name="periodo" />
+                                    {%- elif page.titulo | lower == "materia" -%}
+                                    <label for="inp1">Titulo:</label>
+                                    <input id="inp1" type="text" class="demo-name" name="titulo" />
+                                    <label for="inp2">Professor:</label>
+                                    <input id="inp2" type="text" class="demo-name" name="professor" />
+                                    <label for="inp3">Periodo:</label>
+                                    <input id="inp3" type="text" class="demo-name" name="periodo" />
+                                    {%- endif -%}
+                                </div>
+                            </div>
+                            <div>
+                                <br>
+                                <ul class="actions">
+                                    <li>
+                                        <a href="/admin" class="button">Cancelar</a>
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="Criar" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </form>
+                        {%- elif page.tipo == 2 -%}
+                        <header class="major">
+                            <p>Editar {{ page.titulo }}</p>
+                        </header>
+                        <form action="/editar{{ page.titulo | lower }}" method="post">
+                            <div class="row">
+                                <div class="9u 12u$(small)">
+                                    {%- if page.titulo | lower == "aluno" -%}
+                                    <input type="hidden" name="id" value="{{ page.objeto.key.id() }}"/>
+                                    <label for="inp1">Matricula:</label>
+                                    <input id="inp1" type="text" class="demo-name" name="matricula" value="{{ page.objeto.matricula }}" />
+                                    <label for="inp2">Nome:</label>
+                                    <input id="inp2" type="text" class="demo-name" name="nome" value="{{ page.objeto.nome }}" />
+                                    <label for="inp3">Periodo:</label>
+                                    <input id="inp3" type="text" class="demo-name" name="periodo" value="{{ page.objeto.periodo }}" />
+                                    {%- elif page.titulo | lower == "materia" -%}
+                                    <input type="hidden" name="id" value="{{ page.objeto.key.id() }}"/>
+                                    <label for="inp1">Titulo:</label>
+                                    <input id="inp1" type="text" class="demo-name" name="titulo" value="{{ page.objeto.titulo }}" />
+                                    <label for="inp2">Professor:</label>
+                                    <input id="inp2" type="text" class="demo-name" name="professor" value="{{ page.objeto.professor }}" />
+                                    <label for="inp3">Periodo:</label>
+                                    <input id="inp3" type="text" class="demo-name" name="periodo" value="{{ page.objeto.periodo }}" />
+                                    {%- endif -%}
+                                </div>
+                            </div>
+                            <div>
+                                <br>
+                                <ul class="actions">
+                                    <li>
+                                        <a href="/admin" class="button">Cancelar</a>
+                                    </li>
+                                    <li>
+                                        <input type="submit" value="Concluir" />
+                                    </li>
+                                </ul>
+                            </div>
+                        </form>
+                        {%- endif -%}
+                    </article>
+                </section>
+            </div>
+        </section>
+
+        <footer id="footer">
+            <div class="copyright">
+                &copy; IFPB - Campus Guarabira. All rights reserved.
+            </div>
+        </footer>
+    </div>
+
+
+
+    <!-- Scripts -->
+    <script src="../assets/js/jquery.min.js"></script>
+    <script src="../assets/js/skel.min.js"></script>
+    <script src="../assets/js/util.js"></script>
+    <script src="../assets/js/jquery.scrollex.min.js"></script>
+    <script src="../assets/js/jquery.scrolly.min.js"></script>
+    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+    <script src="../assets/js/main.js"></script>
+
+</body>
+
+</html>
