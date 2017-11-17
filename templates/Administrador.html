@@ -16,15 +16,16 @@
     <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
 </head>
 
+
 <body>
- 
+
     <!-- Page wrapper -->
     <div id="page-wrapper">
 
         <!-- Header -->
         <header id="header">
             <span class="logo">
-                <a href="index.html">Administração</a>
+                <a href="/">Administração</a>
                 <span>- MINOS</span>
             </span>
             <a href="#menu">Menu</a>
@@ -62,169 +63,195 @@
                 <center>
                     <hr align="center" color=grey>
                 </center>
-                <div class="row">
+                <div>
                     <div class="12u">
-                        <!-- Buttons -->
-                        <ul class="actions">
-                            <div class="row uniform">
-                            <li>
-                                <a href="/criarformulario" class="button special big">Criar um Formulario</a>
-                            </li>
-                            <li>
-                                <a href="/criarmateria" class="button special big">Criar Materia</a>
-                            </li>
-                            <li>
-                                <a href="/criaraluno" class="button special big">Criar Aluno</a>
-                            </li>
-                            <li>
-                                <a href="/criarpergunta" class="button special big">Criar Pergunta</a>
-                            </li>
-                            <li>
-                                <a href="/listarformularios" class="button special big">FORMULÁRIOS</a>
-                            </li>
-                            <li>
-                                <a href="/listarmaterias" class="button special big">MATÉRIAS</a>
-                            </li>
-                            <li>
-                                <a href="/listaralunos" class="button special big">ALUNOS</a>
-                            </li>
-                            <li>
-                                <a href="/listarperguntas" class="button special big">PERGUNTAS</a>
-                            </li>
-                            </div>
-                        </ul>
+                        <center>
+                            <!-- Buttons -->
+                            <ul class="actions">
+                                <li>
+                                    <a href="/listarformularios" class="button special big">FORMULÁRIOS</a>
+                                </li>
+                                <li>
+                                    <a href="/listarmaterias" class="button special big">MATÉRIAS</a>
+                                </li>
+                                <li>
+                                    <a href="/listaralunos" class="button special big">ALUNOS</a>
+                                </li>
+                                <li>
+                                    <a href="/listarperguntas" class="button special big">PERGUNTAS</a>
+                                </li>
+                            </ul>
+                        </center>
                     </div>
                     <div class="12u$">
-                    {%- if page -%}
-                    <div class="12u$(medium) box" style="overflow: auto;">
-                        <Header>
-                            <center>
-                                <h1>{{ page.titulo }}</h1>
-                            </center>
-                        </Header>
-                        {%- if page.titulo == "Formulários" -%}
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>Id</td>
-                                    <td>Titulo</td>
-                                    <td>Descrição</td>
-                                    <td>Opções</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {%- for formulario in page.formularios -%}
-                                <tr>
-                                    <td>{{ formulario.key.id() }}</td>
-                                    <td>{{ formulario.titulo }}</td>
-                                    <td>{{ formulario.descricao }}</td>
-                                    <td>
-                                        <ul class="icons">
-                                            <li>
-                                                <a href="/editarformulario?id={{ formulario.key.id() }}" class="icon fa-pencil-square-o"></a>
-                                            </li>
-                                            <li>
-                                                <a href="/apagarformulario?id={{ formulario.key.id() }}" class="icon fa-trash-o"></a>
-                                            </li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                {%- endfor -%}
-                            </tbody>
-                        </table>
-                        {%- elif page.titulo == "Alunos" -%}
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>Matricula</td>
-                                    <td>Nome</td>
-                                    <td>Periodo</td>
-                                    <td>Opções</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {%- for aluno in page.alunos -%}
-                                <tr>
-                                    <td>{{ aluno.matricula }}</td>
-                                    <td>{{ aluno.nome }}</td>
-                                    <td>{{ aluno.periodo }}</td>
-                                    <td>
-                                        <ul class="icons">
-                                            <li>
-                                                <a href="/editaraluno?id={{ aluno.key.id() }}" class="icon fa-pencil-square-o"></a>
-                                            </li>
-                                            <li>
-                                                <a href="/apagaraluno?id={{ aluno.key.id() }}" class="icon fa-trash-o"></a>
-                                            </li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                {%- endfor -%}
-                            </tbody>
-                        </table>
-                        {%- elif page.titulo == "Matérias" -%}
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>Titulo</td>
-                                    <td>Professor</td>
-                                    <td>Periodo</td>
-                                    <td>Opções</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {%- for materia in page.materias -%}
-                                <tr>
-                                    <td>{{ materia.titulo }}</td>
-                                    <td>{{ materia.professor }}</td>
-                                    <td>{{ materia.periodo }}</td>
-                                    <td>
-                                        <ul class="icons">
-                                            <li>
-                                                <a href="/editarmateria?id={{ materia.key.id() }}" class="icon fa-pencil-square-o"></a>
-                                            </li>
-                                            <li>
-                                                <a href="/apagarmateria?id={{ materia.key.id() }}" class="icon fa-trash-o"></a>
-                                            </li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                {%- endfor -%}
-                            </tbody>
-                        </table>
-                        {%- else -%}
-                        <table>
-                            <thead>
-                                <tr>
-                                    <td>Id</td>
-                                    <td>Enunciado</td>
-                                    <td>Tipo</td>
-                                    <td>Opções</td>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {%- for pergunta in page.perguntas -%}
-                                <tr>
-                                    <td>{{ pergunta.key.id() }}</td>
-                                    <td>{{ pergunta.enunciado }}</td>
-                                    <td>{{ pergunta.tipo }}</td>
-                                    <td>
-                                        <ul class="icons">
-                                            <li>
-                                                <a href="/editarpergunta?id={{ pergunta.key.id() }}" class="icon fa-pencil-square-o"></a>
-                                            </li>
-                                            <li>
-                                                <a href="/apagarpergunta?id={{ pergunta.key.id() }}" class="icon fa-trash-o"></a>
-                                            </li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                {%- endfor -%}
-                            </tbody>
-                        </table>
+                        {%- if page -%}
+                        <center>
+                            <div class="12u$(medium) box" style="overflow: auto;">
+                                <Header>
+                                    <center>
+                                        <h1>{{ page.titulo }}</h1>
+                                    </center>
+                                </Header>
+                                {%- if page.titulo == "Formulários" -%}
+                                <div class="box" style="height: 440px; overflow: auto;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <td>Id</td>
+                                                <td>Titulo</td>
+                                                <td>Descrição</td>
+                                                <td>Opções</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {%- for formulario in page.formularios -%}
+                                            <tr>
+                                                <td>{{ formulario.key.id() }}</td>
+                                                <td>{{ formulario.titulo }}</td>
+                                                <td>{{ formulario.descricao }}</td>
+                                                <td>
+                                                    <ul class="icons">
+                                                        <li>
+                                                            <a href="/editarformulario?id={{ formulario.key.id() }}" class="icon fa-pencil-square-o"></a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="/apagarformulario?id={{ formulario.key.id() }}" class="icon fa-trash-o"></a>
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            {%- endfor -%}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <center>
+                                    <ul class="actions">
+                                        <li>
+                                            <a href="/criarformulario" class="button special big">ADICIONAR</a>
+                                        </li>
+                                    </ul>
+                                </center>
+                                {%- elif page.titulo == "Alunos" -%}
+                                <div class="box" style="height: 440px; overflow: auto;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <td>Matricula</td>
+                                                <td>Nome</td>
+                                                <td>Periodo</td>
+                                                <td>Opções</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {%- for aluno in page.alunos -%}
+                                            <tr>
+                                                <td>{{ aluno.matricula }}</td>
+                                                <td>{{ aluno.nome }}</td>
+                                                <td>{{ aluno.periodo }}</td>
+                                                <td>
+                                                    <ul class="icons">
+                                                        <li>
+                                                            <a href="/editaraluno?id={{ aluno.key.id() }}" class="icon fa-pencil-square-o"></a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="/apagaraluno?id={{ aluno.key.id() }}" class="icon fa-trash-o"></a>
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            {%- endfor -%}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <center>
+                                    <ul class="actions">
+                                        <li>
+                                            <a href="/criaraluno" class="button special big">ADICIONAR</a>
+                                        </li>
+                                    </ul>
+                                </center>
+                                {%- elif page.titulo == "Matérias" -%}
+                                <div class="box" style="height: 440px; overflow: auto;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <td>Titulo</td>
+                                                <td>Professor</td>
+                                                <td>Periodo</td>
+                                                <td>Opções</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {%- for materia in page.materias -%}
+                                            <tr>
+                                                <td>{{ materia.titulo }}</td>
+                                                <td>{{ materia.professor }}</td>
+                                                <td>{{ materia.periodo }}</td>
+                                                <td>
+                                                    <ul class="icons">
+                                                        <li>
+                                                            <a href="/editarmateria?id={{ materia.key.id() }}" class="icon fa-pencil-square-o"></a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="/apagarmateria?id={{ materia.key.id() }}" class="icon fa-trash-o"></a>
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            {%- endfor -%}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <center>
+                                    <ul class="actions">
+                                        <li>
+                                            <a href="/criarmateria" class="button special big">ADICIONAR</a>
+                                        </li>
+                                    </ul>
+                                </center>
+                                {%- else -%}
+                                <div class="box" style="height: 440px; overflow: auto;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <td>Id</td>
+                                                <td>Enunciado</td>
+                                                <td>Tipo</td>
+                                                <td>Opções</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {%- for pergunta in page.perguntas -%}
+                                            <tr>
+                                                <td>{{ pergunta.key.id() }}</td>
+                                                <td>{{ pergunta.enunciado }}</td>
+                                                <td>{{ pergunta.tipo }}</td>
+                                                <td>
+                                                    <ul class="icons">
+                                                        <li>
+                                                            <a href="/editarpergunta?id={{ pergunta.key.id() }}" class="icon fa-pencil-square-o"></a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="/apagarpergunta?id={{ pergunta.key.id() }}" class="icon fa-trash-o"></a>
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            {%- endfor -%}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <center>
+                                    <ul class="actions">
+                                        <li>
+                                            <a href="/criarpergunta" class="button special big">ADICIONAR</a>
+                                        </li>
+                                    </ul>
+                                </center>
+                                {%- endif -%}
+                            </div>
+                        </center>
                         {%- endif -%}
-                    </div>
-                    {%- endif -%}
                     </div>
                 </div>
             </div>
