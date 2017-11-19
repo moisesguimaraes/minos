@@ -67,10 +67,13 @@
                                 <b>{{ formulario.descricao }}</b>
                             </h5>
                         </header>
-                        <ul class="actions">
-                            <li><a href="/avaliar?form={{ formulario.codigo }}" class="button big special">Avaliar</a></li>
-                            <li><p style="text-align:right;">Progresso: {{ formulario.progresso }}%</p></li>
-                        </ul>
+                        <form action="/formularios" method="post">
+                            <input type="hidden" name="form" value="{{ formulario.codigo }}">
+                            <ul class="actions">
+                                <li><input class="button big special" type="submit" value="Avaliar"></li>
+                                <li><p style="text-align:right;">Progresso: {{ formulario.progresso }}%</p></li>
+                            </ul>
+                        </form>
                     </article>
                     {%- endfor -%}
                 </section>
