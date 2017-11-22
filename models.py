@@ -40,9 +40,10 @@ class Aluno(ndb.Model):
 
 
 class Codigo(ndb.Model):
-    nomeAluno = ndb.StringProperty(indexed=False)
+    nomeAluno = ndb.StringProperty()
     periodo = ndb.StringProperty(indexed=False)
-    codigo = ndb.StringProperty(indexed=False)
+    codigo = ndb.StringProperty()
+    formulario = ndb.IntegerProperty()
 
 class Contador(ndb.Model):
     id_perguntas = ndb.IntegerProperty() 
@@ -51,7 +52,11 @@ class Contador(ndb.Model):
     maior_cod = ndb.IntegerProperty()
 
 class Resultado(ndb.Model):
-    aluno = ndb.IntegerProperty()
-    formulario = ndb.IntegerProperty()
+    materia = ndb.StringProperty(indexed=False)
     enunciado = ndb.StringProperty(indexed=False)
-    respostas = ndb.StringProperty(indexed=False)
+    respostas = ndb.StringProperty(repeated=True)
+
+class Progresso(ndb.Model):
+    matricula = ndb.IntegerProperty()
+    formulario = ndb.IntegerProperty()
+    progresso = ndb.IntegerProperty()
