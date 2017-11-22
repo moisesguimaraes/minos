@@ -177,9 +177,10 @@
                                     <tr>
                                         <td>{{ perg.key.id() }}</td>
                                         <td>{{ perg.enunciado }}</td>
+                                        <td>{{ perg.tipo }}</td>
                                         <td>
-                                            <input id="p{{ loop.index }}" type="checkbox" name="perg" value="{{ perg.key.id() }}">
-                                            <label for="p{{ loop.index }}"></label>
+                                            <input id="p1{{ loop.index }}" type="checkbox" name="perg" value="{{ perg.key.id() }}">
+                                            <label for="p1{{ loop.index }}"></label>
                                         </td>
                                     </tr>
                                     {%-endfor -%}
