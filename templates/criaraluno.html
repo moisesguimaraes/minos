@@ -7,7 +7,7 @@
 <html>
 
 <head>
-    <title>Formulário</title>
+    <title>Aluno</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -24,7 +24,7 @@
         <!-- Header -->
         <header id="header">
             <span class="logo">
-                <a href="/">Formulário</a>
+                <a href="/">Aluno</a>
                 <span>- MINOS</span>
             </span>
             <a href="#menu">Menu</a>
@@ -55,53 +55,54 @@
         <!-- Main -->
         <section id="main" class="wrapper alt">
             <div class="inner">
-                {%- if page.tipo == 1 -%}
 
+                {%- if page.tipo == 1 -%}
                 <center>
-                    <h1>Criar Formulário</h1>
+                    <h1>Criar Aluno</h1>
                 </center>
 
-                <form action="/criarformulario" method="post">
+                <form action="/criaraluno" method="post">
                     <section class="spotlights">
                         <article>
                             <center>
-                                <h3>Formulário</h3>
+                                <h3>Aluno</h3>
                             </center>
-
+                
                             <div class="row">
                                 <div class="9u 12u$(small)">
-                                    <label for="inp1">Titulo:</label>
-                                    <input id="inp1" type="text" class="demo-name" name="titulo" />
-                                    <label for="inp2">Descricao:</label>
-                                    <input id="inp2" type="text" class="demo-name" name="descricao" />
+                                    <label for="inp1">Matricula:</label>
+                                    <input id="inp1" type="text" class="demo-name" name="matricula" />
+                                    <label for="inp2">Nome:</label>
+                                    <input id="inp2" type="text" class="demo-name" name="nome" />
+                                    <label for="inp3">Periodo:</label>
+                                    <input id="inp3" type="text" class="demo-name" name="periodo" />
                                 </div>
                             </div>
                         </article>
                     </section>
-
                     <div class="table-wrapper box" style="overflow: auto;">
                         <center>
-                            <h3>Perguntas</h3>
+                            <h3>Matérias</h3>
                         </center>
                         <div class="box" style="height: 440px; overflow: auto;">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Id</th>
-                                        <th>Enunciado</th>
-                                        <th>Tipo</th>
+                                        <th>Titulo</th>
+                                        <th>Periodo</th>
                                         <th>Opção</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {%- for perg in page.perguntas -%}
+                                    {%- for mat in page.materias -%}
                                     <tr>
-                                        <td>{{ perg.key.id() }}</td>
-                                        <td>{{ perg.enunciado }}</td>
-                                        <td>{{ perg.tipo }}</td>
+                                        <td>{{ mat.key.id() }}</td>
+                                        <td>{{ mat.titulo }}</td>
+                                        <td>{{ mat.periodo }}</td>
                                         <td>
-                                            <input id="p{{ loop.index }}" type="checkbox" name="perg" value="{{ perg.key.id() }}">
-                                            <label for="p{{ loop.index }}"></label>
+                                            <input id="m{{ loop.index }}" type="checkbox" name="mat" value="{{ mat.key.id() }}">
+                                            <label for="m{{ loop.index }}"></label>
                                         </td>
                                     </tr>
                                     {%-endfor -%}
@@ -109,8 +110,7 @@
                             </table>
                         </div>
                     </div>
-
-                    <div class="12u$">
+                    <div>
                         <center>
                             <ul class="actions">
                                 <li>
@@ -123,64 +123,67 @@
                         </center>
                     </div>
                 </form>
+
                 {%- elif page.tipo == 2 -%}
 
                 <center>
-                    <h1>Editar Formulário</h1>
+                    <h1>Editar Aluno</h1>
                 </center>
 
-                <form action="/editarformulario" method="post">
+                <form action="/editaraluno" method="post">
                     <section class="spotlights">
                         <article>
                             <center>
-                                <h3>Formulário</h3>
+                                <h3>Aluno</h3>
                             </center>
-
+                
                             <div class="row">
                                 <div class="9u 12u$(small)">
-                                    <label for="inp1">Titulo:</label>
-                                    <input id="inp1" type="text" class="demo-name" name="titulo" value="{{ page.formulario.titulo }}" />
-                                    <label for="inp2">Descricao:</label>
-                                    <input id="inp2" type="text" class="demo-name" name="descricao" value="{{ page.formulario.descricao }}"/>
+
+                                        <label for="inp1">Matricula:</label>
+                                        <input id="inp1" type="text" class="demo-name" name="matricula" value="{{ page.aluno.matricula }}" />
+                                        <label for="inp2">Nome:</label>
+                                        <input id="inp2" type="text" class="demo-name" name="nome" value="{{ page.aluno.nome }}" />
+                                        <label for="inp3">Periodo:</label>
+                                        <input id="inp3" type="text" class="demo-name" name="periodo" value="{{ page.aluno.periodo }}" />
+
                                 </div>
                             </div>
                         </article>
                     </section>
-
                     <div class="table-wrapper box" style="overflow: auto;">
                         <center>
-                            <h3>Perguntas</h3>
+                            <h3>Matérias</h3>
                         </center>
                         <div class="box" style="height: 440px; overflow: auto;">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Id</th>
-                                        <th>Enunciado</th>
-                                        <th>Tipo</th>
+                                        <th>Titulo</th>
+                                        <th>Periodo</th>
                                         <th>Opção</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {%- for perg in page.perguntast -%}
+                                    {%- for mat in page.materiast -%}
                                     <tr>
-                                        <td>{{ perg.key.id() }}</td>
-                                        <td>{{ perg.enunciado }}</td>
-                                        <td>{{ perg.tipo }}</td>
+                                        <td>{{ mat.key.id() }}</td>
+                                        <td>{{ mat.titulo }}</td>
+                                        <td>{{ mat.periodo }}</td>
                                         <td>
-                                            <input id="p{{ loop.index }}" type="checkbox" name="perg" value="{{ perg.key.id() }}" checked>
-                                            <label for="p{{ loop.index }}"></label>
+                                            <input id="m{{ loop.index }}" type="checkbox" name="mat" value="{{ mat.key.id() }}" checked>
+                                            <label for="m{{ loop.index }}"></label>
                                         </td>
                                     </tr>
-                                    {%-endfor -%}
-                                    {%- for perg in page.perguntasnt -%}
+                                    {%-endfor -%} {%- for mat in page.materiasnt -%}
                                     <tr>
-                                        <td>{{ perg.key.id() }}</td>
-                                        <td>{{ perg.enunciado }}</td>
-                                        <td>{{ perg.tipo }}</td>
+                                        <td>{{ mat.key.id() }}</td>
+                                        <td>{{ mat.titulo }}</td>
+                                        <td>{{ mat.periodo }}</td>
                                         <td>
-                                            <input id="p1{{ loop.index }}" type="checkbox" name="perg" value="{{ perg.key.id() }}">
-                                            <label for="p1{{ loop.index }}"></label>
+                                            <input id="m1{{ loop.index }}" type="checkbox" name="mat" value="{{ mat.key.id() }}">
+                                            <label for="m1{{ loop.index }}"></label>
                                         </td>
                                     </tr>
                                     {%-endfor -%}
@@ -188,8 +191,7 @@
                             </table>
                         </div>
                     </div>
-
-                    <div class="12u$">
+                    <div>
                         <center>
                             <ul class="actions">
                                 <li>
@@ -204,6 +206,7 @@
                 </form>
 
                 {%- endif -%}
+
             </div>
         </section>
 

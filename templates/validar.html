@@ -7,7 +7,7 @@
 <html>
 
 <head>
-    <title>Formulários</title>
+    <title>PROFESSOR</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -24,7 +24,7 @@
         <!-- Header -->
         <header id="header">
             <span class="logo">
-                <a href="/formularios">Formulários</a>
+                <a href="index.html">PROFESSOR</a>
                 <span>- Minos</span>
             </span>
             <a href="#menu">Menu</a>
@@ -56,38 +56,30 @@
         <section id="main" class="wrapper alt">
             <div class="inner">
                 <section class="spotlights">
-                    {% for formulario in formularios -%}
                     <article>
                         <header class="major">
-                            <p>{{ formulario.titulo }}</p>
-                            <!-- <i>
-                            <h4>Descrição do Form</h4>
-                        </i> -->
-                            <h5>
-                                <b>{{ formulario.descricao }}</b>
-                            </h5>
+                            <p>Validar</p>
+                            <i>
+                                <h4>Esse código valerá 10 pontos.</h4>
+                            </i>
                         </header>
-                        <form action="/formularios" method="post">
-                            <input type="hidden" name="form" value="{{ formulario.codigo }}">
-                            <ul class="actions">
-                                <li>
-                                    <input class="button big special" type="submit" value="Avaliar">
-                                </li>
-                                <li>
-                                    <div class="loading">
-                                        <div class="progress">
-                                            <div class="progress_bar" style="width: {{ formulario.progresso }}%;">
-                                            </div>
-                                            <div id="prog_status">
-                                                Progresso: {{ formulario.progresso }}%
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </form>
+                        {%- set codigo = page.codigo -%}
+                        <div class="row">
+                            <div class="9u 12u$(small)">
+                                <form action="/validar" method="post">
+                                    <label for="inp1">Aluno:</label>
+                                    <input id="inp1" type="text" class="demo-name" name="nome" value="{{ codigo.nomeAluno }}" readonly/>
+                                    <label for="inp2">Período:</label>
+                                    <input id="inp2" type="text" class="demo-name" name="periodo" value="{{ codigo.periodo }}" readonly/>
+                                    <label for="inp3">Código:</label>
+                                    <input id="inp3" type="text" class="demo-name" name="codigo" value="{{ codigo.codigo }}" readonly/>
+                                    <br>
+                                    <button class="button special icon fa-check-square-o" value="validar" style="left:70%">VALIDAR</button>
+                                </form>
+                            </div>
+                        </div>
+                    
                     </article>
-                    {%- endfor -%}
                 </section>
             </div>
         </section>

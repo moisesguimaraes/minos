@@ -24,7 +24,7 @@
         <!-- Header -->
         <header id="header">
             <span class="logo">
-                <a href="index.html">Gratificação</a>
+                <a href="/">Gratificação</a>
                 <span>- Minos</span>
             </span>
             <a href="#menu">Menu</a>
@@ -60,7 +60,7 @@
                         <header class="major">
                             <p>Pegue seu código</p>
                             <i>
-                                <h4>Esse código valerá 10 pontos </h4>
+                                <h4>Esse código valerá 10 pontos. Salve-o pois não poderá acessá-lo novamente. </h4>
                             </i>
                         </header>
                         <div class="row">
@@ -96,19 +96,7 @@
     <script src="../assets/js/jquery.scrolly.min.js"></script>
     <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
     <script src="../assets/js/main.js"></script>
-    <script>
-        function copytoclipboard(element) {
-            var copyTextarea = document.querySelector(element);
-            copyTextarea.select();
-            try {
-                var successful = document.execCommand('copy');
-                var msg = successful ? 'successful' : 'unsuccessful';
-                console.log('Copying text command was ' + msg);
-            } catch (err) {
-                console.log('Oops, unable to copy');
-            }
-        };
-    </script>
+    <script src="../assets/js/extra.js"></script>
 
 </body>
 

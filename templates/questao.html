@@ -7,7 +7,7 @@
 <html>
 
 <head>
-    <title>Formulário</title>
+    <title>Questão</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
@@ -24,7 +24,7 @@
         <!-- Header -->
         <header id="header">
             <span class="logo">
-                <a href="index.html">Formulário</a>
+                <a href="/">Questão</a>
                 <span>- MINOS</span>
             </span>
             <a href="#menu">Menu</a>
@@ -68,7 +68,7 @@
                         <hr align="center" color="grey">
                     </center>
 
-                    <form action="/avaliar?form={{ page.formulario.user_id }}" method="post">
+                    <form action="/avaliar" method="post">
                         <h3>Respostas:</h3>
                         <div class="table-wrapper">
                             <table>
@@ -81,7 +81,7 @@
                                             <h3> {{ materia.titulo }}:</h3>
                                         </td>
                                         <td>
-                                            <textarea name="{{ materia }}" id="{{ ID }}" placeholder="Digite aqui sua resposta" rows="1" cols="50"></textarea> {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                            <textarea name="{{ materia.titulo }}" id="{{ ID.ID }}" placeholder="Digite aqui sua resposta" rows="1" cols="50"></textarea> {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
                                         </td>
                                     </tr>
 
@@ -92,8 +92,8 @@
                                         </td>
                                         {% for resposta in page.pergunta.respostas -%}
                                         <td>
-                                            <input id="{{ ID }}" type="radio" name="{{ materia }}" value="{{ resposta }}">
-                                            <label for="{{ ID }}">{{ resposta }}</label>
+                                            <input id="{{ ID.ID }}" type="radio" name="{{ materia.titulo }}" value="{{ resposta }}">
+                                            <label for="{{ ID.ID }}">{{ resposta }}</label>
                                             {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
                                         </td>
                                         {%- endfor %}
@@ -106,8 +106,8 @@
                                         </td>
                                         {% for resposta in page.pergunta.respostas -%}
                                         <td>
-                                            <input id="{{ ID }}" type="checkbox" name="{{ materia }}" value="{{ resposta }}">
-                                            <label for="{{ ID }}"></label>{{ resposta }}</input>
+                                            <input id="{{ ID.ID }}" type="checkbox" name="{{ materia.titulo }}" value="{{ resposta }}"/>
+                                            <label for="{{ ID.ID }}">{{ resposta }}</label>
                                             {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
                                         </td>
                                         {%- endfor %}
