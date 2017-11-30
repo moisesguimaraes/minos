@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.titulo }}{% endblock %}
+
+{% block subtitulo %}{{ page.subtitulo }}{% endblock %}
+
+{%- block base_content -%}
+
+{%- from "funcoes.html" import tabela, campos_texto -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>{{ page.titulo }}</h1>
+        </center>
+
+        <form action="/{{ page.url }}" method="post">
+
+        {{ campos_texto(title=page.entidade, campos_p=page.objeto) }}
+
+        {{ tabela(
+            title=page.objects,
+            group_objects_h=page.objects_h,
+            group_objects_nh=page.objects_nh,
+            button=page.button
+        ) }}
+
+        <div>
+            <center>
+                <ul class="actions">
+                    <li>
+                        <a href="/admin" class="button">Cancelar</a>
+                    </li>
+                    <li>
+                        <input type="submit" value="Concluir" />
+                    </li>
+                </ul>
+            </center>
+        </div>
+        </form>
+    </div>
+</section>
+
+{%- endblock -%}
