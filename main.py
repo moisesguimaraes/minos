@@ -54,7 +54,7 @@ class MainHandler(Handler):
 class LoginAlunoHandler(Handler):
 
     def get(self):
-        self.render("loginAluno.html")
+        self.render("Aluno/loginaluno.html")
 
     def post(self):
         global DATA_COOKIE
@@ -83,7 +83,7 @@ class LoginAlunoHandler(Handler):
 class LoginHandler(Handler):
 
     def get(self):
-        self.render("loginAdmin.html")
+        self.render("Admin/loginadmin.html")
 
     def post(self):
         global DATA_COOKIE
@@ -138,7 +138,7 @@ class FormulariosHandler(Handler):
                     }
                     progresso.put()
                     form.append(d)
-                self.render("formularios.html", formularios=form)
+                self.render("Aluno/formularios.html", formularios=form)
             else:
                 self.redirect('/')
         except ValueError:
@@ -189,7 +189,7 @@ class AvaliacaoHandler(Handler):
                     data['pergunta'] = pergunta
                     data['progresso'] = progresso
                     DATA_COOKIE[cookie] = data
-                    self.render('questao.html', page=page)
+                    self.render('Aluno/questao.html', page=page)
                 elif not codigo:
                     self.redirect('/points')
                 else:
@@ -243,7 +243,7 @@ class CodigoHandler(Handler):
                 codigo = cod.codigo[:]
                 cod.put()
                 time.sleep(.1)
-                self.render("gratificacao.html", codigo=codigo)
+                self.render("Aluno/gratificacao.html", codigo=codigo)
             else:
                 self.redirect('/formularios')
         else:
@@ -252,7 +252,7 @@ class CodigoHandler(Handler):
 
 class ProfessorHandler(Handler):
     def get(self):
-        self.render("professor.html")
+        self.render("Prof/professor.html")
     
     def post(self):
         global DATA_COOKIE
@@ -284,7 +284,7 @@ class ValidarCodigo(Handler):
                 page = {
                     "codigo": cod
                 }
-                self.render("validar.html", page=page)
+                self.render("Prof/validar.html", page=page)
             else:
                 self.redirect('/professor')
         else:
@@ -311,7 +311,7 @@ class AdministradorHandler(Handler):
         cookie = self.request.cookies.get('__ck')
         data = DATA_COOKIE.get(cookie, '')
         if data and data['perm'] == 2:
-            self.render("Administrador.html")
+            self.render("Admin/administrador.html")
         else:
             self.redirect('/login')
 
@@ -333,7 +333,7 @@ class ListarFormularios(Handler):
                 "objects_nh": formularios,
                 "button": "criarformulario"
             }
-            self.render("Administrador.html", page=page)
+            self.render("Admin/administrador.html", page=page)
         else:
             self.redirect('/login')
 
@@ -355,7 +355,7 @@ class ListarAlunos(Handler):
                 "objects_nh": alunos,
                 "button": "criaraluno"
             }
-            self.render("Administrador.html", page=page)
+            self.render("Admin/administrador.html", page=page)
         else:
             self.redirect('/login')
 
@@ -377,7 +377,7 @@ class ListarMaterias(Handler):
                 "objects_nh": materias,
                 "button": "criarmateria"
             }
-            self.render("Administrador.html", page=page)
+            self.render("Admin/administrador.html", page=page)
         else:
             self.redirect('/login')
 
@@ -399,7 +399,7 @@ class ListarPerguntas(Handler):
                 "objects_nh": perguntas,
                 "button": "criarpergunta"
             }
-            self.render("Administrador.html", page=page)
+            self.render("Admin/administrador.html", page=page)
         else:
             self.redirect('/login')
 
@@ -423,7 +423,7 @@ class CriarFormulario(Handler):
                 "url": "criarformulario",
                 "button": None
             }
-            self.render("entidades.html", page=page)
+            self.render("Admin/entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -468,7 +468,7 @@ class CriarAluno(Handler):
                 "url": "criaraluno",
                 "button": None
             }
-            self.render("entidades.html", page=page)
+            self.render("Admin/entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -509,7 +509,7 @@ class CriarMateria(Handler):
                 "url": "criarmateria",
                 "button": None
             }
-            self.render("entidades.html", page=page)
+            self.render("Admin/entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -544,7 +544,7 @@ class CriarPergunta(Handler):
         cookie = self.request.cookies.get('__ck')
         data = DATA_COOKIE.get(cookie, '')
         if data and data['perm'] == 2:
-            self.render("criarpergunta.html")
+            self.render("Admin/criarpergunta.html")
         else:
             self.redirect('/login')
 
@@ -658,7 +658,7 @@ class EditarFormulario(Handler):
             }
             data["formulario"] = id
             DATA_COOKIE[cookie] = data
-            self.render("entidades.html", page=page)
+            self.render("Admin/entidades.html", page=page)
         else:
             self.redirect('/login')
     
@@ -715,7 +715,7 @@ class EditarAluno(Handler):
             }
             data["aluno"] = id
             DATA_COOKIE[cookie] = data
-            self.render("entidades.html", page=page)
+            self.render("Admin/entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -779,7 +779,7 @@ class EditarMateria(Handler):
             }
             data["materia"] = id
             DATA_COOKIE[cookie] = data
-            self.render("entidades.html", page=page)
+            self.render("Admin/entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -819,7 +819,7 @@ class EditarPergunta(Handler):
             perg = ndb.Key(Pergunta, id).get()
             data["pergunta"] = id
             DATA_COOKIE[cookie] = data
-            self.render("editarpergunta.html", pergunta=perg)
+            self.render("Admin/editarpergunta.html", pergunta=perg)
         else:
             self.redirect('/login')
     

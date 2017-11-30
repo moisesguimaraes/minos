@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Professor{% endblock %}
+
+{% block subtitulo %}Professor{% endblock %}
+
+{% set alt = "alt" %}
+
+{%- block base_content -%}
+        <section id="banner">
+            <div class="inner">
+                <form action="/professor" method="post">
+                    <center>
+                        <h1>CST em Gestão Comercial</h1>
+                        <h2 style="color:white">Validação de Pontuação</h2>
+                        <div class="field half first">
+                            <label for="user"> </label>
+                            <center>
+                                <input style="background: #39a288;" autofocus name="codigo" id="user" type="text" placeholder="Código" />
+                            </center>
+                        </div>
+                        <ul class="actions">
+                            <li>
+                                <input class="button big special" type="submit" value="Validar">
+                            </li>
+                        </ul>
+                    </center>
+                </form>
+            </div>
+        </section>
+{%- endblock -%}
