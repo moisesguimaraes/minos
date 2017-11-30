@@ -14,9 +14,10 @@
     <link rel="stylesheet" href="../assets/css/main.css" />
     <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
     <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+
 </head>
 
-<body id="matricula">
+<body id="matricula" class="cor">
 
     <!-- Page wrapper -->
     <div id="page-wrapper">
@@ -51,43 +52,41 @@
                 <a class="close">Close</a>
             </div>
         </nav>
-
-        <!-- Footer -->
-        <footer id="footer">
+        <section id="banner">
             <div class="inner">
                 <form action="/login" method="post">
                     <center>
-                        <h2>Acesso ao Sistema</h2>
                         <h1>CST em Gestão Comercial</h1>
                         <div class="field half first">
-                            <label for="user">Usuario</label>
+                            <label for="user"> </label>
                             <center>
-                                <input autofocus name="usuario" id="user" type="text" placeholder="Usuario" />
+                                <input style="background: #39a288;" autofocus name="usuario" id="user" type="text" placeholder="Usuario" />
                             </center>
                         </div>
 
                         <div class="field half first">
-                            <label for="senha">Senha</label>
+                            <label for="senha"> </label>
                             <center>
-                                <input name="senha" id="senha" type="text" placeholder="Senha" />
+                                <input style="background: #39a288;" name="senha" id="senha" type="password" placeholder="Senha" />
                             </center>
                         </div>
 
                         <ul class="actions">
                             <li>
-                                <input value="Enviar" class="button big" type="submit">
+                                <a class="button big special scrolly" type="submit">Entrar</a>
                             </li>
                         </ul>
+
+
                     </center>
                 </form>
             </div>
-
             <div class="copyright">
                 &copy; IFPB - Campus Guarabira. All rights reserved.
-
+    
             </div>
-        </footer>
-
+        </section>
+        
         <!-- Scripts -->
         <script src="../assets/js/jquery.min.js"></script>
         <script src="../assets/js/skel.min.js"></script>

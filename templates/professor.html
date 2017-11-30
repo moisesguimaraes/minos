@@ -7,24 +7,25 @@
 <html>
 
 <head>
-    <title>PROFESSOR</title>
+    <title>Avaliação de Curso - CST</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
     <link rel="stylesheet" href="../assets/css/main.css" />
     <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
     <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+
 </head>
 
-<body>
+<body id="matricula" class="cor">
 
     <!-- Page wrapper -->
     <div id="page-wrapper">
 
         <!-- Header -->
-        <header id="header">
+        <header id="header" class="alt">
             <span class="logo">
-                <a href="index.html">PROFESSOR</a>
+                <a href="/">Acesso do Professor</a>
                 <span>- Minos</span>
             </span>
             <a href="#menu">Menu</a>
@@ -51,47 +52,43 @@
                 <a class="close">Close</a>
             </div>
         </nav>
-
-        <!-- Main -->
-        <section id="main" class="wrapper alt">
+        <section id="banner">
             <div class="inner">
-                <section class="spotlights">
-                    <article>
-                        <header class="major">
-                            <p>VALIDAÇÃO DE PONTUAÇÃO</p>
-                            <i><h4>Imforme o código entregue ao aluno:</h4></i>
-                        </header>
-                        <form action="/professor" method="post">
-                            <div class="row">
-                                <div class="9u 12u$(small)">
-                                    <input id="textcod" name="codigo" type="text" class="demo-name" value="" />
-                                </div>
-                                <div class="3u$ 12u$(small)">
-                                    <button class="button special icon fa-check-square-o" value="validar">VALIDAR</button>
-                                </div>
-                            </div>
-                        </form>
-                    </article>
-                </section>
+                <form action="/login" method="post">
+                    <center>
+                        <h1>CST em Gestão Comercial</h1>
+                        <h2 style="color:white">Validação de Pontuação</h2>
+                        <div class="field half first">
+                            <label for="user"> </label>
+                            <center>
+                                <input style="background: #39a288;" autofocus name="codigo" id="user" type="text" placeholder="Código" />
+                            </center>
+                        </div>
+                        <ul class="actions">
+                            <li>
+                                <a class="button big special scrolly" type="submit">Validar</a>
+                            </li>
+                        </ul>
+
+
+                    </center>
+                </form>
             </div>
-        </section>
-        <!-- Footer -->
-        <footer id="footer">
             <div class="copyright">
                 &copy; IFPB - Campus Guarabira. All rights reserved.
+    
             </div>
-        </footer>
-
+        </section>
+        
+        <!-- Scripts -->
+        <script src="../assets/js/jquery.min.js"></script>
+        <script src="../assets/js/skel.min.js"></script>
+        <script src="../assets/js/util.js"></script>
+        <script src="../assets/js/jquery.scrollex.min.js"></script>
+        <script src="../assets/js/jquery.scrolly.min.js"></script>
+        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+        <script src="../assets/js/main.js"></script>
     </div>
-
-    <!-- Scripts -->
-    <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/js/skel.min.js"></script>
-    <script src="../assets/js/util.js"></script>
-    <script src="../assets/js/jquery.scrollex.min.js"></script>
-    <script src="../assets/js/jquery.scrolly.min.js"></script>
-    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-    <script src="../assets/js/main.js"></script>
 
 </body>
 
