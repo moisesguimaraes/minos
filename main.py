@@ -51,7 +51,7 @@ class MainHandler(Handler):
         self.write(GESTAO_COMERCIAL_HTML)
 
 
-class AlunoHandler(Handler):
+class LoginAlunoHandler(Handler):
 
     def get(self):
         self.render("loginAluno.html")
@@ -75,9 +75,9 @@ class AlunoHandler(Handler):
                 self.response.set_cookie(key='__ck',value=cookie)
                 self.redirect('/formularios')
             else:
-                self.redirect('/aluno')
+                self.redirect('/')
         except ValueError:
-            self.redirect('/aluno')
+            self.redirect('/')
 
 
 class LoginHandler(Handler):
@@ -140,9 +140,9 @@ class FormulariosHandler(Handler):
                     form.append(d)
                 self.render("formularios.html", formularios=form)
             else:
-                self.redirect('/aluno')
+                self.redirect('/')
         except ValueError:
-            self.redirect('/aluno')
+            self.redirect('/')
 
     def post(self):
         global DATA_COOKIE
@@ -159,9 +159,9 @@ class FormulariosHandler(Handler):
                 DATA_COOKIE[cookie] = data
                 self.redirect('/avaliar')
             else:
-                self.redirect('/aluno')
+                self.redirect('/')
         except ValueError:
-            self.redirect('/aluno')
+            self.redirect('/')
 
 
 class AvaliacaoHandler(Handler):
@@ -195,9 +195,9 @@ class AvaliacaoHandler(Handler):
                 else:
                     self.redirect('/formularios')
             else:
-                self.redirect('/aluno')
+                self.redirect('/')
         except ValueError:
-            self.redirect('/aluno')
+            self.redirect('/')
 
     def post(self):
         global DATA_COOKIE
@@ -219,9 +219,9 @@ class AvaliacaoHandler(Handler):
                 time.sleep(.2)
                 self.redirect('/avaliar')
             else:
-                self.redirect('/aluno')
+                self.redirect('/')
         except ValueError:
-            self.redirect('/aluno')
+            self.redirect('/')
 
 
 class CodigoHandler(Handler):
@@ -247,7 +247,7 @@ class CodigoHandler(Handler):
             else:
                 self.redirect('/formularios')
         else:
-            self.redirect('/aluno')
+            self.redirect('/')
 
 
 class ProfessorHandler(Handler):
@@ -324,8 +324,14 @@ class ListarFormularios(Handler):
         if data and data['perm'] == 2:
             formularios = Formulario.query()
             page = {
-                "titulo": u"Formulários",
-                "formularios": formularios
+                "titulo": None,
+                "subtitulo": None,
+                "entidade": None,
+                "objeto": None,
+                "objects": "formulario",
+                "objects_h": [],
+                "objects_nh": formularios,
+                "button": "criarformulario"
             }
             self.render("Administrador.html", page=page)
         else:
@@ -340,8 +346,14 @@ class ListarAlunos(Handler):
         if data and data['perm'] == 2:
             alunos = Aluno.query()
             page = {
-                "titulo": "Alunos",
-                "alunos": alunos
+                "titulo": None,
+                "subtitulo": None,
+                "entidade": None,
+                "objeto": None,
+                "objects": "aluno",
+                "objects_h": [],
+                "objects_nh": alunos,
+                "button": "criaraluno"
             }
             self.render("Administrador.html", page=page)
         else:
@@ -356,8 +368,14 @@ class ListarMaterias(Handler):
         if data and data['perm'] == 2:
             materias = Materia.query()
             page = {
-                "titulo": u"Matérias",
-                "materias": materias
+                "titulo": None,
+                "subtitulo": None,
+                "entidade": None,
+                "objeto": None,
+                "objects": "materia",
+                "objects_h": [],
+                "objects_nh": materias,
+                "button": "criarmateria"
             }
             self.render("Administrador.html", page=page)
         else:
@@ -372,8 +390,14 @@ class ListarPerguntas(Handler):
         if data and data['perm'] == 2:
             perguntas = Pergunta.query()
             page = {
-                "titulo": "Perguntas",
-                "perguntas": perguntas
+                "titulo": None,
+                "subtitulo": None,
+                "entidade": None,
+                "objeto": None,
+                "objects": "pergunta",
+                "objects_h": [],
+                "objects_nh": perguntas,
+                "button": "criarpergunta"
             }
             self.render("Administrador.html", page=page)
         else:
@@ -381,6 +405,7 @@ class ListarPerguntas(Handler):
 
 
 class CriarFormulario(Handler):
+
     def get(self):
         global DATA_COOKIE
         cookie = self.request.cookies.get('__ck')
@@ -388,10 +413,17 @@ class CriarFormulario(Handler):
         if data and data['perm'] == 2:
             perguntas = Pergunta.query()
             page = {
-                "tipo": 1,
-                "perguntas": perguntas
+                "titulo": u"Criar Formulário",
+                "subtitulo": u"Formulário",
+                "entidade": "formulario",
+                "objeto": None,
+                "objects": "pergunta",
+                "objects_h": [],
+                "objects_nh": perguntas,
+                "url": "criarformulario",
+                "button": None
             }
-            self.render("criarformulario.html", page=page)
+            self.render("entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -402,7 +434,7 @@ class CriarFormulario(Handler):
         if data and data['perm'] == 2:
             titulo = self.request.get('titulo')
             descricao = self.request.get('descricao')
-            perguntas = self.request.get_all('perg')
+            perguntas = self.request.get_all('pergunta')
             if perguntas:
                 perguntas = list(map(int, perguntas))
             cont = ndb.Key(Contador, 1).get()
@@ -425,8 +457,18 @@ class CriarAluno(Handler):
         data = DATA_COOKIE.get(cookie, '')
         if data and data['perm'] == 2:
             materias = Materia.query()
-            page = {"tipo": 1, "materias": materias}
-            self.render("criaraluno.html", page=page)
+            page = {
+                "titulo": "Criar Aluno",
+                "subtitulo": "Aluno",
+                "entidade": "aluno",
+                "objeto": None,
+                "objects": "materia",
+                "objects_h": [],
+                "objects_nh": materias,
+                "url": "criaraluno",
+                "button": None
+            }
+            self.render("entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -438,12 +480,12 @@ class CriarAluno(Handler):
             matricula = self.request.get('matricula')
             periodo = self.request.get('periodo')
             nome = self.request.get('nome')
-            materias = self.request.get_all('mat')
+            materias = self.request.get_all('materia')
             if materias:
                 materias = list(map(int, materias))
             aluno = Aluno(matricula=matricula, periodo=periodo, nome=nome, materias=materias, id=int(matricula), user_id=int(matricula))
             aluno.put()
-            time.sleep(.1)
+            time.sleep(.2)
             self.redirect("/listaralunos")
         else:
             self.redirect('/login')
@@ -456,8 +498,18 @@ class CriarMateria(Handler):
         data = DATA_COOKIE.get(cookie, '')
         if data and data['perm'] == 2:
             formularios = Formulario.query()
-            page = {"tipo": 1, "formularios": formularios}
-            self.render("criarmateria.html", page=page)
+            page = {
+                "titulo": u"Criar Matéria",
+                "subtitulo": u"Matéria",
+                "entidade": "materia",
+                "objeto": None,
+                "objects": "formulario",
+                "objects_h": [],
+                "objects_nh": formularios,
+                "url": "criarmateria",
+                "button": None
+            }
+            self.render("entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -469,7 +521,7 @@ class CriarMateria(Handler):
             titulo = self.request.get('titulo')
             professor = self.request.get('professor')
             periodo = self.request.get('periodo')
-            formularios = self.request.get_all('form')
+            formularios = self.request.get_all('formulario')
             if formularios:
                 formularios = list(map(int, formularios))
             cont = ndb.Key(Contador, 1).get()
@@ -486,6 +538,7 @@ class CriarMateria(Handler):
 
 
 class CriarPergunta(Handler):
+
     def get(self):
         global DATA_COOKIE
         cookie = self.request.cookies.get('__ck')
@@ -570,7 +623,7 @@ class ApagarAluno(Handler):
             id = int(self.request.get('id'))
             aluno = ndb.Key(Aluno, id).get()
             aluno.key.delete()
-            time.sleep(.1)
+            time.sleep(.2)
             self.redirect('/listaralunos')
         else:
             self.redirect('/login')
@@ -593,14 +646,19 @@ class EditarFormulario(Handler):
                 else:
                     perguntasnt.append(perg)
             page = {
-                "tipo": 2,
-                "formulario": form,
-                "perguntast": perguntast,
-                "perguntasnt": perguntasnt
+                "titulo": u"Editar Formulário",
+                "subtitulo": u"Formulário",
+                "entidade": "formulario",
+                "objeto": form,
+                "objects": "pergunta",
+                "objects_h": perguntast,
+                "objects_nh": perguntasnt,
+                "url": "editarformulario",
+                "button": None
             }
             data["formulario"] = id
             DATA_COOKIE[cookie] = data
-            self.render("criarformulario.html", page=page)
+            self.render("entidades.html", page=page)
         else:
             self.redirect('/login')
     
@@ -612,7 +670,7 @@ class EditarFormulario(Handler):
             id = data["formulario"]
             titulo = self.request.get('titulo')
             descricao = self.request.get('descricao')
-            perguntas = self.request.get_all('perg')
+            perguntas = self.request.get_all('pergunta')
             if perguntas:
                 perguntas = list(map(int, perguntas))
             form = ndb.Key(Formulario, id).get()
@@ -645,14 +703,19 @@ class EditarAluno(Handler):
                 else:
                     materiasnt.append(mat)
             page = {
-                "tipo": 2,
-                "aluno": aluno,
-                "materiast": materiast,
-                "materiasnt": materiasnt
+                "titulo": "Editar Aluno",
+                "subtitulo": "Aluno",
+                "entidade": "aluno",
+                "objeto": aluno,
+                "objects": "materia",
+                "objects_h": materiast,
+                "objects_nh": materiasnt,
+                "url": "editaraluno",
+                "button": None
             }
             data["aluno"] = id
             DATA_COOKIE[cookie] = data
-            self.render("criaraluno.html", page=page)
+            self.render("entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -665,14 +728,21 @@ class EditarAluno(Handler):
             matricula = self.request.get('matricula')
             periodo = self.request.get('periodo')
             nome = self.request.get('nome')
-            materias = self.request.get_all('mat')
+            materias = self.request.get_all('materia')
             if materias:
                 materias = list(map(int, materias))
             aluno = ndb.Key(Aluno, id).get()
             aluno.key.delete()
-            aluno = Aluno(matricula=matricula, periodo=periodo, nome=nome, materias=materias, id=int(matricula), user_id=int(matricula))
+            aluno = Aluno(
+                matricula=matricula,
+                periodo=periodo,
+                nome=nome,
+                materias=materias,
+                id=int(matricula),
+                user_id=int(matricula)
+            )
             aluno.put()
-            time.sleep(.1)
+            time.sleep(.2)
             data["aluno"] = None
             DATA_COOKIE[cookie] = data
             self.redirect('/listaralunos')
@@ -697,14 +767,19 @@ class EditarMateria(Handler):
                 else:
                     formulariosnt.append(form)
             page = {
-                "tipo": 2,
-                "materia": mat,
-                "formulariost": formulariost,
-                "formulariosnt": formulariosnt
+                "titulo": u"Editar Matéria",
+                "subtitulo": u"Matéria",
+                "entidade": "materia",
+                "objeto": mat,
+                "objects": "formulario",
+                "objects_h": formulariost,
+                "objects_nh": formulariosnt,
+                "url": "editarmateria",
+                "button": None
             }
             data["materia"] = id
             DATA_COOKIE[cookie] = data
-            self.render("criarmateria.html", page=page)
+            self.render("entidades.html", page=page)
         else:
             self.redirect('/login')
 
@@ -717,7 +792,7 @@ class EditarMateria(Handler):
             titulo = self.request.get('titulo')
             professor = self.request.get('professor')
             periodo = self.request.get('periodo')
-            formularios = self.request.get_all('form')
+            formularios = self.request.get_all('formulario')
             if formularios:
                 formularios = list(map(int, formularios))
             mat = ndb.Key(Materia, id).get()
@@ -726,7 +801,7 @@ class EditarMateria(Handler):
             mat.periodo = periodo
             mat.formularios = formularios
             mat.put()
-            time.sleep(.1)
+            time.sleep(.2)
             data["materia"] = None
             DATA_COOKIE[cookie] = data
             self.redirect('/listarmaterias')
@@ -771,8 +846,8 @@ class EditarPergunta(Handler):
 
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler),
-    ('/aluno', AlunoHandler),
+    ('/tests', MainHandler),
+    ('/', LoginAlunoHandler),
     ('/formularios', FormulariosHandler),
     ('/avaliar', AvaliacaoHandler),
     ('/points', CodigoHandler),

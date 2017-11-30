@@ -1,106 +1,40 @@
-<!DOCTYPE HTML>
-<!--
-    Atmosphere by Pixelarity
-    pixelarity.com | hello@pixelarity.com
-    License: pixelarity.com/license
--->
-<html>
 
-<head>
-    <title>PROFESSOR</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
-    <link rel="stylesheet" href="../assets/css/main.css" />
-    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
-    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block title %} Professor{% endblock %}
 
-    <!-- Page wrapper -->
-    <div id="page-wrapper">
+{% block subtitulo %}Professor{% endblock %}
 
-        <!-- Header -->
-        <header id="header">
-            <span class="logo">
-                <a href="index.html">PROFESSOR</a>
-                <span>- Minos</span>
-            </span>
-            <a href="#menu">Menu</a>
-        </header>
-
-        <!-- Nav -->
-        <nav id="menu">
-            <div class="inner">
-                <h2>Menu</h2>
-                <ul class="links">
-                    <li>
-                        <a href="/">Home</a>
-                    </li>
-                    <li>
-                        <a href="/login">Administrador</a>
-                    </li>
-                    <li>
-                        <a href="/aluno">Aluno</a>
-                    </li>
-                    <li>
-                        <a href="/professor">Professor</a>
-                    </li>
-                </ul>
-                <a class="close">Close</a>
-            </div>
-        </nav>
-
-        <!-- Main -->
-        <section id="main" class="wrapper alt">
-            <div class="inner">
-                <section class="spotlights">
-                    <article>
-                        <header class="major">
-                            <p>Validar</p>
-                            <i>
-                                <h4>Esse código valerá 10 pontos.</h4>
-                            </i>
-                        </header>
-                        {%- set codigo = page.codigo -%}
-                        <div class="row">
-                            <div class="9u 12u$(small)">
-                                <form action="/validar" method="post">
-                                    <label for="inp1">Aluno:</label>
-                                    <input id="inp1" type="text" class="demo-name" name="nome" value="{{ codigo.nomeAluno }}" readonly/>
-                                    <label for="inp2">Período:</label>
-                                    <input id="inp2" type="text" class="demo-name" name="periodo" value="{{ codigo.periodo }}" readonly/>
-                                    <label for="inp3">Código:</label>
-                                    <input id="inp3" type="text" class="demo-name" name="codigo" value="{{ codigo.codigo }}" readonly/>
-                                    <br>
-                                    <button class="button special icon fa-check-square-o" value="validar" style="left:70%">VALIDAR</button>
-                                </form>
-                            </div>
-                        </div>
-                    
-                    </article>
-                </section>
-            </div>
+{%- block base_content -%}
+<!-- Main -->
+<section id="main" class="wrapper alt">
+    <div class="inner">
+        <section class="spotlights">
+            <article>
+                <header class="major">
+                    <p>Validar</p>
+                    <i>
+                        <h4>Esse código valerá 10 pontos.</h4>
+                    </i>
+                </header>
+                {%- set codigo = page.codigo -%}
+                <div class="row">
+                    <div class="9u 12u$(small)">
+                        <form action="/validar" method="post">
+                            <label for="inp1">Aluno:</label>
+                            <input id="inp1" type="text" class="demo-name" name="nome" value="{{ codigo.nomeAluno }}" readonly/>
+                            <label for="inp2">Período:</label>
+                            <input id="inp2" type="text" class="demo-name" name="periodo" value="{{ codigo.periodo }}" readonly/>
+                            <label for="inp3">Código:</label>
+                            <input id="inp3" type="text" class="demo-name" name="codigo" value="{{ codigo.codigo }}" readonly/>
+                            <br>
+                            <button class="button special icon fa-check-square-o" value="validar" style="left:70%">VALIDAR</button>
+                        </form>
+                    </div>
+                </div>
+            
+            </article>
         </section>
-        <!-- Footer -->
-        <footer id="footer">
-            <div class="copyright">
-                &copy; IFPB - Campus Guarabira. All rights reserved.
-            </div>
-        </footer>
-
     </div>
-
-    <!-- Scripts -->
-    <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/js/skel.min.js"></script>
-    <script src="../assets/js/util.js"></script>
-    <script src="../assets/js/jquery.scrollex.min.js"></script>
-    <script src="../assets/js/jquery.scrolly.min.js"></script>
-    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-    <script src="../assets/js/main.js"></script>
-
-</body>
-
-</html>
+</section>
+{%- endblock -%}

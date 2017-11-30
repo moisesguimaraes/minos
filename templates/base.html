@@ -1,82 +1,79 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Minos - IFPB Guarabira</title>
-</head>
-<body>
-</body>
-</html>
-
 <!DOCTYPE HTML>
 <!--
-	Atmosphere by Pixelarity
-	pixelarity.com | hello@pixelarity.com
-	License: pixelarity.com/license
+    Atmosphere by Pixelarity
+    pixelarity.com | hello@pixelarity.com
+    License: pixelarity.com/license
 -->
 <html>
-	<head>
-		<title>Untitled</title>
-		<link rel="icon" sizes="256x160" href="../favicon.ico" type="image/x-icon" />
-		<link rel="shortcut icon" sizes="256x160" href="../favicon.ico" type="image/x-icon"/>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
-		<link rel="stylesheet" href="assets/css/main.css" />
-		<!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
-		<!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
-	</head>
-	<body>
 
-		<!-- Page wrapper -->
-			<div id="page-wrapper">
+<head>
+    <title>Minos - {% block title %}{% endblock %}</title>
+    <link rel="icon" sizes="256x160" href="favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" sizes="256x160" href="favicon.ico" type="image/x-icon" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+</head>
 
-				<!-- Header -->
-					<header id="header" class="alt">
-						<span class="logo"><a href="/">Minos</a> - <span>IFPB Guarabira</span></span>
-						<a href="#menu">Menu</a>
-					</header>
-					<!-- Nav -->
-					<nav id="menu">
-						<div class="inner">
-							<h2>Menu</h2>
-							<ul class="links">
-								<li>
-									<a href="/">Home</a>
-								</li>
-								<li>
-									<a href="/login">Administrador</a>
-								</li>
-								<li>
-									<a href="/aluno">Aluno</a>
-								</li>
-								<li>
-									<a href="/professor">Professor</a>
-								</li>
-							</ul>
-							<a class="close">Close</a>
-						</div>
-					</nav>
+<body>
 
-				{% block base_content %}
-				{% endblock %}
+    <!-- Page wrapper -->
+    <div id="page-wrapper">
 
-				<!-- Footer -->
-					<footer id="footer">
-						<div class="copyright">
-							&copy; Moisés Guimarães. Todos os direitos reservados.
-						</div>
-					</footer>
+        <!-- Header -->
+        <header id="header" class="{{ alt }}">
+            <span class="logo">
+                <a href="/">{% block subtitulo %}{% endblock %}</a>
+                <span>- MINOS</span>
+            </span>
+            <a href="#menu">Menu</a>
+        </header>
 
-			</div>
+        <!-- Nav -->
+        <nav id="menu">
+            <div class="inner">
+                <h2>Menu</h2>
+                <ul class="links">
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    <li>
+                        <a href="/login">Administrador</a>
+                    </li>
+                    <!-- <li>
+                        <a href="/aluno">Aluno</a>
+                    </li> -->
+                    <li>
+                        <a href="/professor">Professor</a>
+                    </li>
+                </ul>
+                <a class="close">Close</a>
+            </div>
+        </nav>
 
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/skel.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/jquery.scrollex.min.js"></script>
-			<script src="assets/js/jquery.scrolly.min.js"></script>
-			<!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-			<script src="assets/js/main.js"></script>
+        {% block base_content %} {% endblock %}
 
-	</body>
+        <!-- Footer -->
+        <footer id="footer">
+            <div class="copyright">
+                &copy; IFPB - Campus Guarabira. Todos os direitos reservados.
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/skel.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/jquery.scrollex.min.js"></script>
+    <script src="assets/js/jquery.scrolly.min.js"></script>
+    <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+    <script src="assets/js/main.js"></script>
+
+</body>
+
 </html>
