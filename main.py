@@ -846,7 +846,7 @@ class EditarPergunta(Handler):
 
 
 app = webapp2.WSGIApplication([
-    # ('/', MainHandler),
+    ('/tests', MainHandler),
     ('/', LoginAlunoHandler),
     ('/formularios', FormulariosHandler),
     ('/avaliar', AvaliacaoHandler),
