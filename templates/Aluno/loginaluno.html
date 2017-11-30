@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}IFPB{% endblock %}
+
+{% block subtitulo %}IFPB{% endblock %}
+
+{% set alt = "alt" %}
+
+{%- block base_content -%}
+<!-- Banner -->
+<section id="banner">
+    <div class="inner">
+        <form action="/" method="post">
+            <center>
+                <h2 style="color: white">Avaliação de Curso</h2>
+                <h1 style="color: white">CST em Gestão Comercial</h1>
+                <div class="field half first">
+
+                    <center>
+                        <input autofocus name="mat" id="name" type="text" style="background-color: #35977f" placeholder="Matrícula">
+                    </center>
+                </div>
+                <ul class="actions">
+                    <li>
+                        <input value="Avaliar" class="button big special" type="submit">
+                    </li>
+                </ul>
+            </center>
+
+        </form>
+    </div>
+</section>
+{%- endblock-%}

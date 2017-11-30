@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Admin{% endblock %}
+
+{% block subtitulo %}Admin{% endblock %}
+
+{% set alt = "alt" %}
+
+{%- block base_content -%}
+        <section id="banner">
+            <div class="inner">
+                <form action="/login" method="post">
+                    <center>
+                        <h1>CST em Gestão Comercial</h1>
+                        <div class="field half first">
+                            <label for="user"> </label>
+                            <center>
+                                <input style="background: #39a288;" autofocus name="usuario" id="user" type="text" placeholder="Usuario" />
+                            </center>
+                        </div>
+
+                        <div class="field half first">
+                            <label for="senha"> </label>
+                            <center>
+                                <input style="background: #39a288;" name="senha" id="senha" type="password" placeholder="Senha" />
+                            </center>
+                        </div>
+
+                        <ul class="actions">
+                            <li>
+                                <input class="button big special" type="submit" value="Entrar">
+                            </li>
+                        </ul>
+                    </center>
+                </form>
+            </div>
+        </section>
+    </div>
+{%- endblock-%}
