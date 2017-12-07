@@ -14,7 +14,7 @@
 		background-attachment: fixed;
 		background-position: center center;
 		background-size: cover;
-		padding: 12em 0 2em;
+		padding: 2em 0;
 
 		> .inner {
 			@include vendor('display', 'flex');
@@ -90,7 +90,7 @@
 
 		.copyright {
 			color: _palette(fg-light);
-			margin-bottom: (_size(element-margin) * 1.5);
+			// margin-bottom: (_size(element-margin) * 1.5);
 			padding: 0;
 			text-align: center;
 
