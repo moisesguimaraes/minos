@@ -22,7 +22,7 @@ GESTAO_COMERCIAL_DATA = json.loads(open(join(
 JINJA_ENV = jinja2.Environment(
     loader=jinja2.FileSystemLoader(TEMPLATE_DIR), autoescape=True)
 GESTAO_COMERCIAL_HTML = JINJA_ENV.get_template(
-    "gestao_comercial.html").render(curso=GESTAO_COMERCIAL_DATA)
+    "index.html").render(curso=GESTAO_COMERCIAL_DATA)
 
 
 DATA_COOKIE = dict()
