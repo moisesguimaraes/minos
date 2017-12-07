@@ -3113,10 +3113,10 @@ body.is-menu-visible #menu {
 */
 /* Banner */
 #banner {
-  background-image: -moz-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-  background-image: -webkit-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-  background-image: -ms-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-  background-image: linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
+  background-image: -moz-linear-gradient(to top, rgba(43, 90, 150, 0.5), rgba(43, 90, 150, 0.5)), url("../../images/banner.jpg");
+  background-image: -webkit-linear-gradient(to top, rgba(43, 90, 150, 0.5), rgba(43, 90, 150, 0.5)), url("../../images/banner.jpg");
+  background-image: -ms-linear-gradient(to top, rgba(43, 90, 150, 0.5), rgba(43, 90, 150, 0.5)), url("../../images/banner.jpg");
+  background-image: linear-gradient(to top, rgba(43, 90, 150, 0.5), rgba(43, 90, 150, 0.5)), url("../../images/banner.jpg");
   background-attachment: fixed;
   background-position: center center;
   background-size: cover;
@@ -3206,14 +3206,11 @@ body.is-menu-visible #menu {
 */
 /* Footer */
 #footer {
-  background-image: -moz-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-  background-image: -webkit-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-  background-image: -ms-linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
-  background-image: linear-gradient(to top, rgba(43, 90, 150, 0.9), rgba(43, 90, 150, 0.9)), url("../../images/banner.jpg");
+  background: #3b4147;
   background-attachment: fixed;
   background-position: center center;
   background-size: cover;
-  padding: 2em 0; }
+  padding: 1.5em 0; }
   #footer > .inner {
     display: -moz-flex;
     display: -webkit-flex;

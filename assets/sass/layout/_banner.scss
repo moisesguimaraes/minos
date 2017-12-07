@@ -8,7 +8,7 @@
 
 	#banner {
 		@include vendor('background-image', (
-			'linear-gradient(to top, #{transparentize(_palette(bg-alt), 0.1)}, #{transparentize(_palette(bg-alt), 0.1)})',
+			'linear-gradient(to top, #{transparentize(_palette(bg-alt), 0.5)}, #{transparentize(_palette(bg-alt), 0.5)})',
 			'url("../../images/banner.jpg")'
 		));
 		background-attachment: fixed;

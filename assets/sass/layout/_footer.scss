@@ -7,14 +7,11 @@
 /* Footer */
 
 	#footer {
-		@include vendor('background-image', (
-			'linear-gradient(to top, #{transparentize(_palette(bg-alt), 0.1)}, #{transparentize(_palette(bg-alt), 0.1)})',
-			'url("../../images/banner.jpg")'
-		));
+		background: desaturate(darken(_palette(fg-bold), 20), 5);
 		background-attachment: fixed;
 		background-position: center center;
 		background-size: cover;
-		padding: 2em 0;
+		padding: 1.5em 0;
 
 		> .inner {
 			@include vendor('display', 'flex');
