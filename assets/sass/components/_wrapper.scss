@@ -60,6 +60,11 @@
 			@include wrapper-edges-color(_palette(accent2, bg));
 		}
 
+		&.style3 {
+			@include color(accent3);
+			@include wrapper-edges-color(_palette(accent3, bg));
+		}
+
 		@include breakpoint(large) {
 			@include padding(5em, 0);
 
