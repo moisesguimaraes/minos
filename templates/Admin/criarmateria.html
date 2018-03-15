@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %} Matéria{% endblock %}
+
+{% block subtitulo %}Matéria{% endblock %}
+
+{%- block base_content -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>Criar Matéria</h1>
+        </center>
+
+        <form action="/materia/criar" method="post">
+
+            <section class="spotlights">
+                <article>
+                    <center>
+                        <h3>Matéria</h3>
+                    </center>
+                    <div class="row">
+                        <div class="9u 12u$(small)">
+                            <label for="inp1">Titulo:</label>
+                            <input id="inp1" type="text" class="demo-name" name="titulo">
+                            <label for="inp2">Professor:</label>
+                            <input id="inp2" type="text" class="demo-name" name="professor">
+                            <label for="inp3">Periodo:</label>
+                            <input id="inp3" type="text" class="demo-name" name="periodo">
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+
+            <div class="box">
+                <center>
+                    <h3>Formulários</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table id="myTable">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Titulo</th>
+                                <th>Descrição</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbforms"></tbody>
+                        <tfoot id="tfforms">
+                            <tr>
+                                <td>Total</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/admin/materias" class="button">Cancelar</a>
+                        </li>
+                        <li>
+                            <input type="submit" value="Concluir">
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </form>
+    </div>
+</section>
+
+{%- endblock -%}
+
+{% block scripts %} <script src="assets/js/Admin/listar_formularios_update.js"></script> {% endblock %}
