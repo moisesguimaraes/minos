@@ -1,0 +1,51 @@
+
+{% extends "Admin/administrador.html" %}
+
+{%- block table -%}
+
+<div class="12u$">
+    <div class="box">
+        <div class="row uniform">
+            <div class="6u 12u$(medium)">
+                <center>
+                    <header>
+                        <h1>Alunos</h1>
+                    </header>
+                </center>
+            </div>
+            <div class="6u$ 12u$(medium)">
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/aluno/view_criar" class="button special big">ADICIONAR</a>
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </div>
+        <div class="table-wrapper box" style="height: 440px;">
+            <table class="alt">
+                <thead>
+                    <tr>
+                        <th>Matricula</th>
+                        <th>Nome</th>
+                        <th>Periodo</th>
+                        <th>Opção</th>
+                    </tr>
+                </thead>
+                <tbody id="tbalunos"></tbody>
+                <tfoot id="tfalunos">
+                    <tr>
+                        <td>Total</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+{%- endblock -%}
+
+{% block scripts %} <script src="assets/js/Admin/listar_alunos.js"></script> {% endblock %}
+ 
