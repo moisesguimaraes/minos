@@ -18,38 +18,29 @@
             <hr align="center" color=grey>
         </center>
         <div>
-            <div class="12u">
+            <div class="12u 12u$(small)">
                 <center>
                     <!-- Buttons -->
                     <ul class="actions">
                         <li>
-                            <a href="/listaralunos" class="button special big">ALUNOS</a>
+                            <a href="/admin/alunos" class="button special big">ALUNOS</a>
                         </li>
                         <li>
-                            <a href="/listarmaterias" class="button special big">MATÉRIAS</a>
+                            <a href="/admin/materias" class="button special big">MATÉRIAS</a>
                         </li>
                         <li>
-                            <a href="/listarformularios" class="button special big">FORMULÁRIOS</a>
+                            <a href="/admin/formularios" class="button special big">FORMULÁRIOS</a>
                         </li>
                         <li>
-                            <a href="/listarperguntas" class="button special big">PERGUNTAS</a>
+                            <a href="/admin/perguntas" class="button special big">PERGUNTAS</a>
+                        </li>
+                        <li>
+                            <a href="/listarresultados" class="button special big">RESULTADOS</a>
                         </li>
                     </ul>
                 </center>
             </div>
-            <div class="12u$">
-                {%- if page -%}
-
-                {%- from "funcoes.html" import tabela -%}
-
-                {{ tabela(
-                    title=page.objects,
-                    group_objects_nh=page.objects_nh,
-                    button=page.button)
-                }}
-
-                {%- endif -%}
-            </div>
+            {%- block table -%} {%- endblock -%}
         </div>
     </div>
 </section>
