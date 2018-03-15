@@ -1,0 +1,80 @@
+
+{% extends "base.html" %}
+
+{% block title %} Formulário{% endblock %}
+
+{% block subtitulo %}Formulário{% endblock %}
+
+{%- block base_content -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>Criar Formulário</h1>
+        </center>
+
+        <form action="/formulario/{{ page.formulario.key.id() }}/atualizar" method="put">
+
+            <section class="spotlights">
+                <article>
+                    <center>
+                        <h3>Formulário</h3>
+                    </center>
+                    <div class="row">
+                        <div class="9u 12u$(small)">
+                            <label for="inp1">Titulo:</label>
+                            <input id="inp1" type="text" class="demo-name" name="titulo" value="{{ page.formulario.titulo }}" >
+                            <label for="inp2">Descricao:</label>
+                            <input id="inp2" type="text" class="demo-name" name="descricao" value="{{ page.formulario.descricao }}">
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+
+            <div class="box">
+                <center>
+                    <h3>Perguntas</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Enunciado</th>
+                                <th>Tipo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%- for pergunta in page.perguntas.atuais -%}
+                            <tr><td>{{ pergunta.user_id }}</td><td>{{ pergunta.enunciado }}</td><td>{{ pergunta.tipo }}</td><td><input id="{{'forma' + loop.index|string }}" type="checkbox" name="pergunta" value="{{ pergunta.key.id() }}" checked><label for="{{'forma' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                            {%- for pergunta in page.perguntas.outras -%}
+                            <tr><td>{{ pergunta.user_id }}</td><td>{{ pergunta.enunciado }}</td><td>{{ pergunta.tipo }}</td><td><input id="{{'formo' + loop.index|string }}" type="checkbox" name="pergunta" value="{{ pergunta.key.id() }}"><label for="{{'formo' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/admin/formularios" class="button">Cancelar</a>
+                        </li>
+                        <li>
+                            <input type="submit" value="Concluir">
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </form>
+    </div>
+</section> 
+
+{%- endblock -%}
+
+{% block scripts %} {% endblock %}

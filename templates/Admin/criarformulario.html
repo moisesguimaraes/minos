@@ -1,0 +1,79 @@
+
+{% extends "base.html" %}
+
+{% block title %} Formulário{% endblock %}
+
+{% block subtitulo %}Formulário{% endblock %}
+
+{%- block base_content -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>Criar Formulário</h1>
+        </center>
+
+        <form action="/formulario/criar" method="post">
+
+            <section class="spotlights">
+                <article>
+                    <center>
+                        <h3>Formulário</h3>
+                    </center>
+                    <div class="row">
+                        <div class="9u 12u$(small)">
+                            <label for="inp1">Titulo:</label>
+                            <input id="inp1" type="text" class="demo-name" name="titulo">
+                            <label for="inp2">Descricao:</label>
+                            <input id="inp2" type="text" class="demo-name" name="descricao">
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+
+            <div class="box">
+                <center>
+                    <h3>Perguntas</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Enunciado</th>
+                                <th>Tipo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbpergs"></tbody>
+                        <tfoot id="tfpergs"> 
+                            <tr>
+                                <td>Total</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/admin/formularios" class="button">Cancelar</a>
+                        </li>
+                        <li>
+                            <input type="submit" value="Concluir">
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </form> 
+    </div>
+</section>
+
+{%- endblock -%}
+
+{% block scripts %} <script src="assets/js/Admin/listar_perguntas_update.js"></script> {% endblock %}
