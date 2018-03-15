@@ -1,7 +1,7 @@
 
 {% extends "base.html" %}
 
-{% block title %} Criar Pergunta{% endblock %}
+{% block title %} Pergunta{% endblock %}
 
 {% block subtitulo %}Pergunta{% endblock %}
 
@@ -17,37 +17,54 @@
         </center>
 
         <div id="formul" class="box">
-            <form id="formu" action="/criarpergunta" method="post">
-                <table id="tabb">
-                </table>
+            <form id="formu" action="/pergunta/criar" method="post">
                 <center>
-                    <div class="12u$">
-                        <ul id="botoes1" class="actions">
-                            <center>
-                                <li>
-                                    <input type="button" id="add_radio" value="Adicionar questao de escolha única" />
-                                </li>
-                                <li>
-                                    <input type="button" id="add_texto" value="Adicionar questao Aberta" />
-                                </li>
-                                <li>
-                                    <input type="button" id="add_marcar" value="Adicionar questao de múltipla escolha" />
-                                </li>
-                            </center>
-                        </ul>
-                        <ul id="botoes2" class="actions">
-                            <li>
-                                <a href="/admin" class="button">Cancelar</a>
-                            </li>
-                            <li>
-                                <input type="submit" value="Concluir" />
-                            </li>
-                        </ul>
+                <h3>Questão</h3>
+                <div class="6u 12u$(small)">
+                    <label id="q2">Enunciado:
+                        <input type="text" name="enunciado">
+                    </label>
+                </div>
+                <div class="6u 12u$(small)">
+                    <label>Tipo</label>
+                    <div class="row uniform">
+                        <div class="4u 12u$(small)">
+                            <input type="radio" id="add_radio" name="tipo" value="radio">
+                            <label for="add_radio">Escolha Única</label>
+                        </div>
+                        <div class="4u 12u$(small)">
+                            <input type="radio" id="add_marcar" name="tipo" value="marcar">
+                            <label for="add_marcar">Múltipla Escolha</label>
+                        </div>
+                        <div class="4u$ 12u$(small)">
+                            <input type="radio" id="add_texto" name="tipo" value="texto">
+                            <label for="add_texto">Aberta</label>
+                        </div>
                     </div>
+                </div>
+                <div class="6u 12u$(small)" style="padding-top: 12px;">
+                    <label>Respostas</label>
+                    <div>
+                        <table>
+                            <tbody id="respostas">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <ul id="botoes2" class="actions">
+                    <li>
+                        <a href="/listarperguntas" class="button">Cancelar</a>
+                    </li>
+                    <li>
+                        <input type="submit" value="Concluir" />
+                    </li>
+                </ul>
                 </center>
             </form>
         </div>
     </div>
 </section>
-
 {%- endblock -%}
+
+{% block scripts %}  {% endblock %}

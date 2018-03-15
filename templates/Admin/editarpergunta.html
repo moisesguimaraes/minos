@@ -1,7 +1,7 @@
 
 {% extends "base.html" %}
 
-{% block title %} Editar Pergunta{% endblock %}
+{% block title %} Pergunta{% endblock %}
 
 {% block subtitulo %}Pergunta{% endblock %}
 
@@ -12,126 +12,71 @@
     <div class="inner">
         <center>
             <header class="major">
-                <h2>Editar Pergunta</h2>
+                <h2>Editando Pergunta</h2>
             </header>
         </center>
 
         <div id="formul" class="box">
-            <form id="formu" action="/editarpergunta" method="post">
-                <input type="hidden" name="id" value="{{ pergunta.key.id() }}">
-                <table id="tabb">
-                    {%- if pergunta.tipo == 1 -%}
-                    <tr id="qq0">
-                        <td>
-                            <h3>Questao</h3>
-                        </td>
-                        <td id="td1">
-                            <label id="q0">Enunciado:
-                                <input id="q0" type="text" name="enunciado" value="{{ pergunta.enunciado }}" />
-                            </label>
-                        </td>
-                        <td>
-                            <button type="button" name="remove" id="0" class="btn btn-danger btn_remove">X</button>
-                        </td>
-                        <input type="hidden" name="tipo" value="1">
-                        <input type="hidden" name="resposta" value="-">
-                    </tr>
-                    {%- elif pergunta.tipo == 2 -%}
-                    <tr id="qq0">
-                        <td>
-                            <h3>Questao</h3>
-                        </td>
-                        <td id="td1">
-                            <label id="q0">Enunciado:
-                                <input id="q0" type="text" name="enunciado" value="{{ pergunta.enunciado }}" />
-                            </label>
-                            <div>
-                                <table>
-                                    <tbody id="respostas">
-                                        {%- for resp in pergunta.respostas -%}
-                                        <tr id="res{{ loop.index }}" class="icons">
-                                            <td class="icon fa-check-circle-o"></td>
-                                            <td>
-                                                <input id="r{{ loop.index }}" type="text" name="resposta" value="{{ resp }}"/>
-                                            </td>
-                                            <td>
-                                                <button type="button" name="remove" id="{{ loop.index }}" class="btn btn-danger btn_add_line1">ADD</button>
-                                            </td>
-                                        </tr>
-                                        {%- endfor -%}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </td>
-                        <td>
-                            <button type="button" name="remove" id="0" class="btn btn-danger btn_remove">X</button>
-                        </td>
-                        <input type="hidden" name="tipo" value="2">
-                    </tr>
-                    {%- elif pergunta.tipo == 3 -%}
-                    <tr id="qq0">
-                        <td>
-                            <h3>Questao</h3>
-                        </td>
-                        <td id="td1">
-                            <label id="q0">Enunciado:
-                                <input id="q0" type="text" name="enunciado" value="{{ pergunta.enunciado }}" />
-                            </label>
-                            <div>
-                                <table>
-                                    <tbody id="respostas">
-                                        {%- for resp in pergunta.respostas -%}
-                                        <tr id="res{{ loop.index }}" class="icons">
-                                            <td class="icon fa-check-square-o"></td>
-                                            <td>
-                                                <input id="r{{ loop.index }}" type="text" name="resposta"  value="{{ resp }}" />
-                                            </td>
-                                            <td>
-                                                <button type="button" name="remove" id="{{ loop.index }}" class="btn btn-danger btn_add_line2">ADD</button>
-                                            </td>
-                                        </tr>
-                                        {%- endfor -%}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </td>
-                        <td>
-                            <button type="button" name="remove" id="0" class="btn btn-danger btn_remove">X</button>
-                        </td>
-                        <input type="hidden" name="tipo" value="3">
-                    </tr>
-                    {%- endif -%}
-                </table>
+            <form id="formu" action="/pergunta/{{ page.pergunta.key.id() }}/atualizar" method="put">
                 <center>
-                    <div>
-                        <div class="12u$">
-                            <ul id="botoes1" class="actions">
-                                <center>
-                                    <li>
-                                        <input type="button" id="add_radio" value="Adicionar questao de escolha única" />
-                                    </li>
-                                    <li>
-                                        <input type="button" id="add_texto" value="Adicionar questao Aberta" />
-                                    </li>
-                                    <li>
-                                        <input type="button" id="add_marcar" value="Adicionar questao de múltipla escolha" />
-                                    </li>
-                                </center>
-                            </ul>
-                            <ul class="actions">
-                                <li>
-                                    <a href="/admin" class="button">Cancelar</a>
-                                </li>
-                                <li>
-                                    <input type="submit" value="Concluir" />
-                                </li>
-                            </ul>
+                <h3>Questão</h3>
+                <div class="6u 12u$(small)">
+                    <label id="q2">Enunciado:
+                        <input type="text" name="enunciado" value="{{ page.pergunta.enunciado }}">
+                    </label>
+                </div>
+                <div class="6u 12u$(small)">
+                    <label>Tipo</label>
+                    <div class="row uniform">
+                        <div class="4u 12u$(small)">
+                            <input type="radio" id="add_radio" name="tipo" value="radio" {%- if page.pergunta.tipo == 2 -%} checked {%- endif -%}>
+                            <label for="add_radio">Escolha Única</label>
+                        </div>
+                        <div class="4u 12u$(small)">
+                            <input type="radio" id="add_marcar" name="tipo" value="marcar"{%- if page.pergunta.tipo == 3 -%} checked {%- endif -%}>
+                            <label for="add_marcar">Múltipla Escolha</label>
+                        </div>
+                        <div class="4u$ 12u$(small)">
+                            <input type="radio" id="add_texto" name="tipo" value="texto" {%- if page.pergunta.tipo == 1 -%} checked {%- endif -%}>
+                            <label for="add_texto">Aberta</label>
                         </div>
                     </div>
+                </div>
+                <div class="6u 12u$(small)" style="padding-top: 12px;">
+                    <label>Respostas</label>
+                    <div>
+                        <table>
+                            <tbody id="respostas">
+                                {%- for resposta in page.pergunta.respostas -%}
+                                <tr class="icons">
+                                    <td class="icon fa-check-{{ 'circle' if page.pergunta.tipo == 2 else 'square' }}-o"></td>
+                                    <td>
+                                        <input type="text" name="resposta" value="{{ resposta }}" />
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger add_linha_{{ 'radio' if page.pergunta.tipo == 2 else 'marcar' }}">ADD</button>
+                                        <button type="button" class="btn btn-danger btn_remove_line">X</button>
+                                    </td>
+                                </tr>
+                                {%- endfor -%}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <ul id="botoes2" class="actions">
+                    <li>
+                        <a href="/listarperguntas" class="button">Cancelar</a>
+                    </li>
+                    <li>
+                        <input type="submit" value="Concluir" />
+                    </li>
+                </ul>
                 </center>
             </form>
         </div>
     </div>
 </section>
-
 {%- endblock -%}
+
+{% block scripts %}  {% endblock %}
