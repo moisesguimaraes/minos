@@ -1,0 +1,82 @@
+ 
+{% extends "base.html" %}
+
+{% block title %} Formulário{% endblock %}
+
+{% block subtitulo %}Formulário{% endblock %}
+
+{%- block base_content -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>Editar Aluno</h1>
+        </center>
+
+        <form action="/aluno/{{ page.aluno.key.id() }}/atualizar" method="put">
+
+            <section class="spotlights">
+                <article>
+                    <center>
+                        <h3>Aluno</h3>
+                    </center>
+                    <div class="row">
+                        <div class="9u 12u$(small)">
+                            <label for="inp1">Matricula:</label>
+                            <input id="inp1" type="text" class="demo-name" name="matricula" value="{{ page.aluno.matricula }}">
+                            <label for="inp2">Nome:</label>
+                            <input id="inp2" type="text" class="demo-name" name="nome" value="{{ page.aluno.nome }}" >
+                            <label for="inp3">Periodo:</label>
+                            <input id="inp3" type="text" class="demo-name" name="periodo" value="{{ page.aluno.periodo }}" >
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+
+            <div class="box">
+                <center>
+                    <h3>Matérias</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Titulo</th>
+                                <th>Periodo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%- for materia in page.materias.atuais -%}
+                            <tr><td>{{ materia.user_id }}</td><td>{{ materia.titulo }}</td><td>{{ materia.periodo }}</td><td><input id="{{'mata' + loop.index|string }}" type="checkbox" name="materia" value="{{ materia.key.id() }}" checked><label for="{{'mata' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                            {%- for materia in page.materias.outras -%}
+                            <tr><td>{{ materia.user_id }}</td><td>{{ materia.titulo }}</td><td>{{ materia.periodo }}</td><td><input id="{{'mato' + loop.index|string }}" type="checkbox" name="materia" value="{{ materia.key.id() }}"><label for="{{'mato' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/admin/alunos" class="button">Cancelar</a>
+                        </li>
+                        <li>
+                            <input type="submit" value="Concluir">
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </form>
+    </div>
+</section>
+ 
+{%- endblock -%}
+
+{% block scripts %} {% endblock %}
