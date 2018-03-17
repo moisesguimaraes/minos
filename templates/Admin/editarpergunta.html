@@ -26,6 +26,19 @@
                     </label>
                 </div>
                 <div class="6u 12u$(small)">
+                    <label>Avaliado</label>
+                    <div class="row uniform">
+                        <div class="6u 12u$(small)">
+                            <input type="radio" id="add_radio_materias" name="avaliado" value="materias" {%- if page.pergunta.avaliado == 1 -%} checked {%- endif -%}>
+                            <label for="add_radio_materias">Matérias</label>
+                        </div>
+                        <div class="6u 12u$(small)">
+                            <input type="radio" id="add_radio_outros" name="avaliado" value="outros" {%- if page.pergunta.avaliado == 2 -%} checked {%- endif -%}>
+                            <label for="add_radio_outros">Outros</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="6u 12u$(small)" style="padding-top: 12px;">
                     <label>Tipo</label>
                     <div class="row uniform">
                         <div class="4u 12u$(small)">
