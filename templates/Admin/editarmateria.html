@@ -33,33 +33,6 @@
                 </article>
             </section>
 
-
-            <div class="box">
-                <center>
-                    <h3>Formulários</h3>
-                </center>
-                <div class="table-wrapper box" style="height: 440px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Titulo</th>
-                                <th>Descrição</th>
-                                <th>Opção</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {%- for formulario in page.formularios.atuais -%}
-                            <tr><td>{{ formulario.user_id }}</td><td>{{ formulario.titulo }}</td><td>{{ formulario.descricao }}</td><td><input id="{{'forma' + loop.index|string }}" type="checkbox" name="formulario" value="{{ formulario.key.id() }}" checked><label for="{{'forma' + loop.index|string }}"></label></td></tr>
-                            {%- endfor -%}
-                            {%- for formulario in page.formularios.outras -%}
-                            <tr><td>{{ formulario.user_id }}</td><td>{{ formulario.titulo }}</td><td>{{ formulario.descricao }}</td><td><input id="{{'formo' + loop.index|string }}" type="checkbox" name="formulario" value="{{ formulario.key.id() }}"><label for="{{'formo' + loop.index|string }}"></label></td></tr>
-                            {%- endfor -%}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
             <div>
                 <center>
                     <ul class="actions">
