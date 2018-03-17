@@ -32,7 +32,6 @@
                 </article>
             </section>
 
-
             <div class="box">
                 <center>
                     <h3>Perguntas</h3>
@@ -58,6 +57,30 @@
                 </div>
             </div>
 
+            <div class="box">
+                <center>
+                    <h3>Turmas</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Periodo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbturmas"></tbody>
+                        <tfoot id="tfturmas">
+                            <tr>
+                                <td>Total</td>
+                                <td colspan="1"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
             <div>
                 <center>
                     <ul class="actions">
@@ -76,4 +99,9 @@
 
 {%- endblock -%}
 
-{% block scripts %} <script src="assets/js/Admin/listar_perguntas_update.js"></script> {% endblock %}
+{% block scripts %}
+
+<script src="assets/js/Admin/listar_perguntas_update.js"></script>
+<script src="assets/js/Admin/listar_turmas_update.js"></script>
+
+{% endblock %}

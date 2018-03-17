@@ -59,6 +59,31 @@
                 </div>
             </div>
 
+            <div class="box">
+                <center>
+                    <h3>Turmas</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Periodo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbturmas">
+                                {%- for turma in page.turmas.atuais -%}
+                                <tr><td>{{ turma.user_id }}</td><td>{{ turma.periodo }}</td><td><input id="{{'turmaa' + loop.index|string }}" type="checkbox" name="turma" value="{{ turma.key.id() }}" checked><label for="{{'turmaa' + loop.index|string }}"></label></td></tr>
+                                {%- endfor -%}
+                                {%- for turma in page.turmas.outras -%}
+                                <tr><td>{{ turma.user_id }}</td><td>{{ turma.periodo }}</td><td><input id="{{'turmao' + loop.index|string }}" type="checkbox" name="turma" value="{{ turma.key.id() }}"><label for="{{'turmao' + loop.index|string }}"></label></td></tr>
+                                {%- endfor -%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div>
                 <center>
                     <ul class="actions">
