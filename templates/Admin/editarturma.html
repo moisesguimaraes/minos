@@ -1,0 +1,104 @@
+ 
+{% extends "base.html" %}
+
+{% block title %} Formulário{% endblock %}
+
+{% block subtitulo %}Formulário{% endblock %}
+
+{%- block base_content -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>Editar Turma</h1>
+        </center>
+
+        <form action="/turma/{{ page.turma.key.id() }}/atualizar" method="put">
+
+            <section class="spotlights">
+                <article>
+                    <center>
+                        <h3>Turma</h3>
+                    </center>
+                    <div class="row">
+                        <div class="9u 12u$(small)">
+                            <label for="inp1">Periodo:</label>
+                            <input id="inp1" type="text" class="demo-name" name="periodo" value="{{ page.turma.periodo }}">
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <div class="box">
+                <center>
+                    <h3>Alunos</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Matricula</th>
+                                <th>Nome</th>
+                                <th>Periodo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbalunos">
+                            {%- for aluno in page.alunos.atuais -%}
+                            <tr><td>{{ aluno.matricula }}</td><td>{{ aluno.nome }}</td><td>{{ aluno.periodo }}</td><td><input id="{{'alunoa' + loop.index|string }}" type="checkbox" name="aluno" value="{{ aluno.key.id() }}" checked><label for="{{'alunoa' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                            {%- for aluno in page.alunos.outras -%}
+                            <tr><td>{{ aluno.matricula }}</td><td>{{ aluno.nome }}</td><td>{{ aluno.periodo }}</td><td><input id="{{'alunoo' + loop.index|string }}" type="checkbox" name="aluno" value="{{ aluno.key.id() }}"><label for="{{'alunoo' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <div class="box">
+                <center>
+                    <h3>Matérias</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Titulo</th>
+                                <th>Periodo</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbmats">
+                            {%- for materia in page.materias.atuais -%}
+                            <tr><td>{{ materia.user_id }}</td><td>{{ materia.titulo }}</td><td>{{ materia.periodo }}</td><td><input id="{{'mata' + loop.index|string }}" type="checkbox" name="materia" value="{{ materia.key.id() }}" checked><label for="{{'mata' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                            {%- for materia in page.materias.outras -%}
+                            <tr><td>{{ materia.user_id }}</td><td>{{ materia.titulo }}</td><td>{{ materia.periodo }}</td><td><input id="{{'mato' + loop.index|string }}" type="checkbox" name="materia" value="{{ materia.key.id() }}"><label for="{{'mato' + loop.index|string }}"></label></td></tr>
+                            {%- endfor -%}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div>
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/admin/turmas" class="button">Cancelar</a>
+                        </li>
+                        <li>
+                            <input type="submit" value="Concluir">
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </form>
+    </div>
+</section>
+
+{%- endblock -%}
+
+{% block scripts %} {% endblock %}
