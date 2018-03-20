@@ -14,7 +14,7 @@
             <!-- Content -->
             <header class="major">
                 <p>{{ page.formulario.titulo }}</p>
-                <h2>Questão {{ page.numero }}</h2>
+                <h2>Questão</h2>
             </header>
             <center>
                 <h1> {{ page.pergunta.enunciado }} </h1>
@@ -23,7 +23,7 @@
                 <hr align="center" color="grey">
             </center>
 
-            <form action="/avaliar" method="post">
+            <form action="/alunos/pergunta/{{ page.pergunta.key.id() }}" method="post">
                 <h3>Respostas:</h3>
                 <div class="table-wrapper">
                     <table>
@@ -67,7 +67,48 @@
                                 </td>
                                 {%- endfor %}
                             </tr>
-                            {%- endif -%} {%- endfor %}
+                            {%- endif -%}
+                            {%- endfor %}
+                            {% if page.materias == [] -%}
+                            {%- if page.pergunta.tipo == 1 -%}
+                            <tr>
+                                <td>
+                                    <h3> Outros:</h3>
+                                </td>
+                                <td>
+                                    <textarea name="outros" id="{{ ID.ID }}" placeholder="Digite aqui sua resposta" rows="1" cols="50"></textarea> {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                </td>
+                            </tr>
+
+                            {%- elif page.pergunta.tipo == 2 -%}
+                            <tr>
+                                <td>
+                                    <h3>Outros:</h3>
+                                </td>
+                                {% for resposta in page.pergunta.respostas -%}
+                                <td>
+                                    <input id="{{ ID.ID }}" type="radio" name="outros" value="{{ resposta }}">
+                                    <label for="{{ ID.ID }}">{{ resposta }}</label>
+                                    {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                </td>
+                                {%- endfor %}
+                            </tr>
+
+                            {%- else -%}
+                            <tr>
+                                <td>
+                                    <h3>Outros:</h3>
+                                </td>
+                                {% for resposta in page.pergunta.respostas -%}
+                                <td>
+                                    <input id="{{ ID.ID }}" type="checkbox" name="outros" value="{{ resposta }}"/>
+                                    <label for="{{ ID.ID }}">{{ resposta }}</label>
+                                    {%- if ID.update({'ID': ID['ID'] + 1}) -%} {%- endif-%}
+                                </td>
+                                {%- endfor %}
+                            </tr>
+                            {%- endif -%}
+                            {%- endif %}
                         </tbody>
                     </table>
 
@@ -78,7 +119,7 @@
                         <ul class="actions">
                             <center>
                                 <li>
-                                    <a href="/formularios" class="button">Cancelar</a>
+                                    <a href="/alunos/formularios" class="button">Cancelar</a>
                                 </li>
                                 <li>
                                     <input type="submit" value="Enviar resposta" />
