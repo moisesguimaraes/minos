@@ -3,26 +3,27 @@
 
 
 import json
-import jinja2
 import time
-import webapp2
 import urllib
-
 from datetime import datetime
 from hashlib import sha224
 from os.path import dirname, join
+
+import jinja2
+import webapp2
+
 from google.appengine.ext import ndb
 from models import *
 
 TEMPLATE_DIR = join(dirname(__file__), "templates")
-DATA_DIR = join(dirname(__file__), "data")
-GESTAO_COMERCIAL_DATA = json.loads(open(join(
-    DATA_DIR, "gestao_comercial.json")).read())
+# DATA_DIR = join(dirname(__file__), "data")
+# GESTAO_COMERCIAL_DATA = json.loads(open(join(
+#     DATA_DIR, "gestao_comercial.json")).read())
 
 JINJA_ENV = jinja2.Environment(
     loader=jinja2.FileSystemLoader(TEMPLATE_DIR), autoescape=True)
-GESTAO_COMERCIAL_HTML = JINJA_ENV.get_template(
-    "index.html").render(curso=GESTAO_COMERCIAL_DATA)
+# GESTAO_COMERCIAL_HTML = JINJA_ENV.get_template(
+#     "index.html").render(curso=GESTAO_COMERCIAL_DATA)
 
 
 DATA_COOKIE = dict()
@@ -45,10 +46,31 @@ class Handler(webapp2.RequestHandler):
     def render(self, *template, **kw):
         self.write(self.render_str(*template, **kw))
 
-class MainHandler(Handler):
+    def json_encode(self, o, atuais=None):
+        self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        query = o.query()
+        query_dict = [dict(q.to_dict(), **dict(id=q.key.id())) for q in query]
+        self.write(json.dumps(query_dict))
+    
+    def getTipo(self, tipo):
+        if tipo == "texto":
+            return 1
+        elif tipo == "radio":
+            return 2
+        elif tipo == "marcar":
+            return 3
+    
+    def getAvaliado(self, avaliado):
+        if avaliado == "materias":
+            return 1
+        elif avaliado == "outros":
+            return 2
 
-    def get(self):
-        self.write(GESTAO_COMERCIAL_HTML)
+
+# class MainHandler(Handler):
+
+#     def get(self):
+#         self.write(GESTAO_COMERCIAL_HTML)
 
 
 class LoginAlunoHandler(Handler):
@@ -59,21 +81,18 @@ class LoginAlunoHandler(Handler):
     def post(self):
         global DATA_COOKIE
         try:
-            matricula = int(self.request.get('mat'))
-            aluno = ndb.Key(Aluno, matricula).get()
-            if (aluno != None) and (matricula == int(aluno.matricula)):
+            matricula = self.request.get('mat')
+            # aluno = ndb.Key(Aluno, matricula).get()
+            aluno = Aluno.query_aluno(matricula)
+            if (aluno != None) and (matricula == aluno.matricula):
                 cookie = gerador_cookie()
                 data = {
-                    'perm': 1,
-                    'mat': matricula,
-                    'form': None,
-                    'materias': None,
-                    'pergunta': None,
-                    'progresso': None
+                    'user': aluno,
+                    'perm': 1
                 }
                 DATA_COOKIE[cookie] = data
                 self.response.set_cookie(key='__ck',value=cookie)
-                self.redirect('/formularios')
+                self.redirect('/alunos/formularios')
             else:
                 self.redirect('/')
         except ValueError:
@@ -108,63 +127,158 @@ class LoginHandler(Handler):
             self.redirect('/login')
 
 
-class FormulariosHandler(Handler):
-
+class AvaliacaoHandler(Handler):
+    
     def get(self):
         global DATA_COOKIE
         try:
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
-            if data and data['perm'] == 1:
-                aluno = ndb.Key(Aluno, data['mat']).get()
-                materias = Materia.query(Materia.user_id.IN(aluno.materias))
-                form_pesquisa = []
-                for materia in materias:
-                    form_pesquisa += materia.formularios
-                form_pesquisa = list(set(form_pesquisa))
-                forms = Formulario.query(Formulario.user_id.IN(form_pesquisa))
-                form = []
-                for formu in forms:
-                    progresso = Progresso.query(ndb.AND(Progresso.formulario == formu.user_id, Progresso.matricula == data['mat'])).fetch(keys_only=True)
-                    if not progresso:
-                        progresso = Progresso(matricula=data['mat'], formulario=formu.user_id, progresso=0)
+            if data != '' and data.get('perm', '') == 1 and data.get('user', ''):
+                user = data['user']
+                turma = Turma.query(Turma.alunos.IN([user.key.id()])).fetch(keys_only=True)
+                formularios = Formulario.query(Formulario.turmas.IN([ tur.id() for tur in turma]))
+                page = []
+                for form in formularios:
+                    prog = Progresso.query(
+                        Progresso.formulario == form.key.id(),
+                        Progresso.user_id == user.key.id()
+                    ).get()
+                    if prog:
+                        prog = int((float(prog.progresso)/len(form.perguntas))*100.0)
                     else:
-                        progresso = progresso.pop(0).get()
-                    d = {
-                        "titulo": formu.titulo,
-                        "descricao": formu.descricao,
-                        "codigo": formu.user_id,
-                        "progresso": int((float(progresso.progresso)/len(formu.perguntas))*100)
-                    }
-                    progresso.put()
-                    form.append(d)
-                self.render("Aluno/formularios.html", formularios=form)
+                        prog = 0
+                    page.append((form, prog))
+                data['turma'] = turma
+                DATA_COOKIE[cookie] = data
+                self.render('Aluno/formularios.html', page=page)
             else:
                 self.redirect('/')
         except ValueError:
             self.redirect('/')
 
-    def post(self):
+
+class HandlerForm(Handler):
+    
+    def get(self, formulario):
         global DATA_COOKIE
         try:
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
-            form = self.request.get('form')
-            if data and data['perm'] == 1 and form != '':
-                form = int(form)
-                materias = Materia.query(Materia.formularios.IN([form]))
-                formulario = ndb.Key(Formulario, form).get()
-                data['form'] = formulario
-                data['materias'] = materias
+            if data != '' and data.get('perm', '') == 1 and data.get('user', ''):
+                user = data['user']
+                form = ndb.Key(Formulario, int(formulario)).get()
+                data['form'] = form
                 DATA_COOKIE[cookie] = data
-                self.redirect('/avaliar')
+                if form:
+                    prog = Progresso.query(ndb.AND(
+                        Progresso.user_id == user.key.id(),
+                        Progresso.formulario == form.key.id()
+                    )).get()
+                    pergunta = None
+                    if prog:
+                        if prog.progresso < len(form.perguntas):
+                            pergunta = form.perguntas[prog.progresso]
+                        else:
+                            self.redirect("/alunos/formularios")
+                    else:
+                        pergunta = form.perguntas[0]
+                    self.redirect('/alunos/pergunta/%d' % (int(pergunta)))
+                else:
+                    self.redirect('/')
             else:
                 self.redirect('/')
         except ValueError:
             self.redirect('/')
 
 
-class AvaliacaoHandler(Handler):
+class AvaliacaoPerguntaHandler(Handler):
+    
+    def get(self, id):
+        self.write(id)
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 1 and data.get('user', '') and data.get('turma', '') and data.get('form', ''):
+                user = data['user']
+                turma = Turma.query(Turma.alunos.IN([user.key.id()]))
+                turma = turma.get()
+                form = data['form']
+                pergunta = ndb.Key(Pergunta, int(id)).get()
+                materias = []
+                if pergunta.avaliado == 1:
+                    materias = ndb.get_multi([ndb.Key(Materia, int(k)) for k in turma.materias])
+                
+                page = {
+                    "pergunta": pergunta,
+                    "materias": materias,
+                    "formulario": form
+                }
+                self.render('Aluno/questao.html', page=page)
+            else:
+                self.redirect('/')
+        except ValueError:
+            self.redirect('/')
+        
+    def post(self, id):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 1 and data.get('user', '') and data.get('turma', '') and data.get('form', ''):
+                user = data['user']
+                turma = Turma.query(Turma.alunos.IN([user.key.id()]))
+                turma = turma.get()
+                formulario = data['form']
+                pergunta = ndb.Key(Pergunta, int(id)).get()
+                avaliado = {}
+                if pergunta.avaliado == 1:
+                    materias = ndb.get_multi([ndb.Key(Materia, int(k)) for k in turma.materias])
+                    if materias:
+                        for materia in materias:
+                            resposta =  self.request.get_all(materia.titulo)
+                            avaliado[materia.titulo] = resposta
+                else:
+                    resposta = self.request.get_all('outros')
+                    avaliado['outros'] = resposta
+                avaliado = json.dumps(avaliado)
+                res = Resultado(
+                    id_aluno=user.key.id(),
+                    id_formulario=formulario.key.id(),
+                    id_pergunta=pergunta.key.id(),
+                    enunciado=pergunta.enunciado,
+                    respostas=avaliado
+                )
+                res.put()
+                prog = Progresso.query(ndb.AND(
+                        Progresso.user_id == user.key.id(),
+                        Progresso.formulario == formulario.key.id()
+                    )).get()
+                if prog:
+                    prog.progresso += 1
+                    prog.put()
+                else:
+                    prog = Progresso(
+                        user_id=user.key.id(),
+                        matricula=user.matricula,
+                        formulario=formulario.key.id(),
+                        progresso=1
+                    )
+                    prog.put()
+                time.sleep(.1)
+                if len(formulario.perguntas) > prog.progresso:
+                    self.redirect('/alunos/pergunta/%d' % (
+                        int(formulario.perguntas[prog.progresso])))
+                else:
+                    self.redirect('/alunos/points')
+            else:
+                self.redirect('/')
+        except ValueError:
+            self.redirect('/')
+        
+
+class AvaliacaoHandler1(Handler):
     def get(self):
         global DATA_COOKIE
         try:
@@ -230,14 +344,23 @@ class CodigoHandler(Handler):
         global DATA_COOKIE
         cookie = self.request.cookies.get('__ck')
         data = DATA_COOKIE.get(cookie, '')
-        if data and data['mat'] and data['perm'] == 1 and data['form']:
-            aluno = ndb.Key(Aluno, data['mat']).get()
+        if data and data['user'] and data['perm'] == 1 and data['form']:
+            aluno = data['user']
             form = data['form']
-            progresso = Progresso.query(ndb.AND(Progresso.formulario == form.user_id, Progresso.matricula == data['mat'])).fetch(keys_only=True)
+            progresso = Progresso.query(
+                ndb.AND(
+                    Progresso.formulario == form.key.id(),
+                    Progresso.user_id == aluno.key.id())).fetch(keys_only=True)
             progresso = progresso.pop(0).get()
             if progresso.progresso == len(form.perguntas):
-                cont = ndb.Key(Contador, 1).get()
-                cod = Codigo(nomeAluno=aluno.nome, periodo=aluno.periodo, formulario=form.user_id, codigo=str("GEST" + str(cont.maior_cod)))
+                cont = Contador.query(Contador.user_id == 1).get()
+                cod = Codigo(
+                    id_aluno=aluno.key.id(),
+                    nomeAluno=aluno.nome,
+                    periodo=aluno.periodo,
+                    id_formulario=form.key.id(),
+                    codigo=str("GEST" + str(cont.maior_cod))
+                )
                 cont.maior_cod += 1
                 cont.put()
                 codigo = cod.codigo[:]
@@ -245,7 +368,7 @@ class CodigoHandler(Handler):
                 time.sleep(.1)
                 self.render("Aluno/gratificacao.html", codigo=codigo)
             else:
-                self.redirect('/formularios')
+                self.redirect('/alunos/formularios')
         else:
             self.redirect('/')
 
@@ -281,10 +404,7 @@ class ValidarCodigo(Handler):
         if data and data['codigo']:
             cod = data['codigo']
             if cod:
-                page = {
-                    "codigo": cod
-                }
-                self.render("Prof/validar.html", page=page)
+                self.render("Prof/validar.html", codigo=cod)
             else:
                 self.redirect('/professor')
         else:
@@ -303,7 +423,7 @@ class ValidarCodigo(Handler):
         else:
             self.redirect('/professor')
 
-
+###############################################################################3
 class AdministradorHandler(Handler):
 
     def get(self):
@@ -316,559 +436,431 @@ class AdministradorHandler(Handler):
             self.redirect('/login')
 
 
-class ListarFormularios(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            formularios = Formulario.query()
-            page = {
-                "titulo": None,
-                "subtitulo": None,
-                "entidade": None,
-                "objeto": None,
-                "objects": "formulario",
-                "objects_h": [],
-                "objects_nh": formularios,
-                "button": "criarformulario"
-            }
-            self.render("Admin/administrador.html", page=page)
-        else:
-            self.redirect('/login')
-
-
-class ListarAlunos(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            alunos = Aluno.query()
-            page = {
-                "titulo": None,
-                "subtitulo": None,
-                "entidade": None,
-                "objeto": None,
-                "objects": "aluno",
-                "objects_h": [],
-                "objects_nh": alunos,
-                "button": "criaraluno"
-            }
-            self.render("Admin/administrador.html", page=page)
-        else:
-            self.redirect('/login')
-
-
-class ListarMaterias(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            materias = Materia.query()
-            page = {
-                "titulo": None,
-                "subtitulo": None,
-                "entidade": None,
-                "objeto": None,
-                "objects": "materia",
-                "objects_h": [],
-                "objects_nh": materias,
-                "button": "criarmateria"
-            }
-            self.render("Admin/administrador.html", page=page)
-        else:
-            self.redirect('/login')
-
-
-class ListarPerguntas(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            perguntas = Pergunta.query()
-            page = {
-                "titulo": None,
-                "subtitulo": None,
-                "entidade": None,
-                "objeto": None,
-                "objects": "pergunta",
-                "objects_h": [],
-                "objects_nh": perguntas,
-                "button": "criarpergunta"
-            }
-            self.render("Admin/administrador.html", page=page)
-        else:
-            self.redirect('/login')
-
-
-class CriarFormulario(Handler):
-
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            perguntas = Pergunta.query()
-            page = {
-                "titulo": u"Criar Formulário",
-                "subtitulo": u"Formulário",
-                "entidade": "formulario",
-                "objeto": None,
-                "objects": "pergunta",
-                "objects_h": [],
-                "objects_nh": perguntas,
-                "url": "criarformulario",
-                "button": None
-            }
-            self.render("Admin/entidades.html", page=page)
-        else:
-            self.redirect('/login')
-
-    def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            titulo = self.request.get('titulo')
-            descricao = self.request.get('descricao')
-            perguntas = self.request.get_all('pergunta')
-            if perguntas:
-                perguntas = list(map(int, perguntas))
-            cont = ndb.Key(Contador, 1).get()
-            if not cont:
-                cont = Contador(id_formularios=1, id_perguntas=1, id_materias=1, maior_cod=1, id=1)
-            form = Formulario(titulo=titulo, descricao=descricao, perguntas=perguntas, id=cont.id_formularios, user_id=cont.id_formularios)
-            cont.id_formularios += 1
-            cont.put()
-            form.put()
-            time.sleep(.1)
-            self.redirect('/listarformularios')
-        else:
-            self.redirect('/login')
-
-
-class CriarAluno(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            materias = Materia.query()
-            page = {
-                "titulo": "Criar Aluno",
-                "subtitulo": "Aluno",
-                "entidade": "aluno",
-                "objeto": None,
-                "objects": "materia",
-                "objects_h": [],
-                "objects_nh": materias,
-                "url": "criaraluno",
-                "button": None
-            }
-            self.render("Admin/entidades.html", page=page)
-        else:
-            self.redirect('/login')
-
-    def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            matricula = self.request.get('matricula')
-            periodo = self.request.get('periodo')
-            nome = self.request.get('nome')
-            materias = self.request.get_all('materia')
-            if materias:
-                materias = list(map(int, materias))
-            aluno = Aluno(matricula=matricula, periodo=periodo, nome=nome, materias=materias, id=int(matricula), user_id=int(matricula))
-            aluno.put()
-            time.sleep(.2)
-            self.redirect("/listaralunos")
-        else:
-            self.redirect('/login')
-
-
-class CriarMateria(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            formularios = Formulario.query()
-            page = {
-                "titulo": u"Criar Matéria",
-                "subtitulo": u"Matéria",
-                "entidade": "materia",
-                "objeto": None,
-                "objects": "formulario",
-                "objects_h": [],
-                "objects_nh": formularios,
-                "url": "criarmateria",
-                "button": None
-            }
-            self.render("Admin/entidades.html", page=page)
-        else:
-            self.redirect('/login')
-
-    def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            titulo = self.request.get('titulo')
-            professor = self.request.get('professor')
-            periodo = self.request.get('periodo')
-            formularios = self.request.get_all('formulario')
-            if formularios:
-                formularios = list(map(int, formularios))
-            cont = ndb.Key(Contador, 1).get()
-            if not cont:
-                cont = Contador(id_formularios=1, id_perguntas=1, id_materias=1, maior_cod=1, id=1)
-            materia = Materia(titulo=titulo, professor=professor, periodo=periodo, formularios=formularios, id=cont.id_materias, user_id=cont.id_materias)
-            cont.id_materias += 1
-            cont.put()
-            materia.put()
-            time.sleep(.1)
-            self.redirect("/listarmaterias")
-        else:
-            self.redirect('/login')
-
-
-class CriarPergunta(Handler):
-
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            self.render("Admin/criarpergunta.html")
-        else:
-            self.redirect('/login')
-
-    def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            enunciado = self.request.get('enunciado')
-            tipo = int(self.request.get('tipo'))
-            respostas = self.request.get_all('resposta')
-            cont = ndb.Key(Contador, 1).get()
-            if not cont:
-                cont = Contador(id_formularios=1, id_perguntas=1, id_materias=1, maior_cod=1, id=1)
-            perg = Pergunta(tipo=tipo, enunciado=enunciado, respostas=respostas, id=cont.id_perguntas, user_id=cont.id_perguntas)
-            cont.id_perguntas += 1
-            cont.put()
-            perg.put()
-            time.sleep(.1)
-            self.redirect('/listarperguntas')
-        else:
-            self.redirect('/login')
-
-
-class ApagarFormulario(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            form = ndb.Key(Formulario, id).get()
-            form.key.delete()
-            time.sleep(.1)
-            self.redirect('/listarformularios')
-        else:
-            self.redirect('/login')
-
-
-class ApagarPergunta(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            perg = ndb.Key(Pergunta, id).get()
-            perg.key.delete()
-            time.sleep(.1)
-            self.redirect('/listarperguntas')
-        else:
-            self.redirect('/login')
-
-
-class ApagarMateria(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            mat = ndb.Key(Materia, id).get()
-            mat.key.delete()
-            time.sleep(.1)
-            self.redirect('/listarmaterias')
-        else:
-            self.redirect('/login')
-
-
-class ApagarAluno(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            aluno = ndb.Key(Aluno, id).get()
-            aluno.key.delete()
-            time.sleep(.2)
-            self.redirect('/listaralunos')
-        else:
-            self.redirect('/login')
-
-
-class EditarFormulario(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            form = ndb.Key(Formulario, id).get()
-            perguntas = Pergunta.query()
-            perguntasnt = []
-            perguntast = []
-            for perg in perguntas:
-                if perg.user_id in form.perguntas:
-                    perguntast.append(perg)
-                else:
-                    perguntasnt.append(perg)
-            page = {
-                "titulo": u"Editar Formulário",
-                "subtitulo": u"Formulário",
-                "entidade": "formulario",
-                "objeto": form,
-                "objects": "pergunta",
-                "objects_h": perguntast,
-                "objects_nh": perguntasnt,
-                "url": "editarformulario",
-                "button": None
-            }
-            data["formulario"] = id
-            DATA_COOKIE[cookie] = data
-            self.render("Admin/entidades.html", page=page)
-        else:
-            self.redirect('/login')
+class FormularioHandler(Handler):
+    def list_ents(self):
+        self.render("Admin/listar_formularios.html")
+    
+    def list(self):
+        self.json_encode(Formulario)
+    
+    def view(self):
+        self.render("Admin/criarformulario.html")
     
     def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = data["formulario"]
-            titulo = self.request.get('titulo')
-            descricao = self.request.get('descricao')
-            perguntas = self.request.get_all('pergunta')
-            if perguntas:
-                perguntas = list(map(int, perguntas))
-            form = ndb.Key(Formulario, id).get()
-            form.titulo = titulo
-            form.descricao = descricao
-            form.perguntas = perguntas
-            form.put()
-            time.sleep(.1)
-            data["formulario"] = None
-            DATA_COOKIE[cookie] = data
-            self.redirect('/listarformularios')
-        else:
-            self.redirect('/login')
-
-
-class EditarAluno(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            aluno = ndb.Key(Aluno, id).get()
-            materias = Materia.query()
-            materiast = []
-            materiasnt = []
-            for mat in materias:
-                if mat.user_id in aluno.materias:
-                    materiast.append(mat)
-                else:
-                    materiasnt.append(mat)
-            page = {
-                "titulo": "Editar Aluno",
-                "subtitulo": "Aluno",
-                "entidade": "aluno",
-                "objeto": aluno,
-                "objects": "materia",
-                "objects_h": materiast,
-                "objects_nh": materiasnt,
-                "url": "editaraluno",
-                "button": None
+        titulo = self.request.get('titulo')
+        descricao = self.request.get('descricao')
+        pergunta = self.request.get_all('pergunta')
+        turmas = self.request.get_all('turma')
+        if pergunta:
+            pergunta = list(map(int, pergunta))
+        if turmas:
+            turmas = list(map(int, turmas))
+        contador = Contador.query(Contador.user_id == 1).get()
+        if not contador:
+            contador = Contador()
+        form = Formulario(
+            user_id=contador.id_formularios,
+            titulo=titulo,
+            descricao=descricao,
+            perguntas=pergunta,
+            turmas=turmas
+        )
+        contador.id_formularios += 1
+        contador.put()
+        form.put()
+        time.sleep(.1)
+        self.redirect('/admin/formularios')
+    
+    def view_update(self, id):
+        form = ndb.Key(Formulario, int(id)).get()
+        perguntas = Pergunta.query()
+        pergsatuais = []
+        pergsoutros = []
+        for pergunta in perguntas:
+            if pergunta.key.id() in form.perguntas:
+                pergsatuais.append(pergunta)
+            else:
+                pergsoutros.append(pergunta)
+        
+        turmas = Turma.query()
+        turmasatuais = []
+        turmasoutros = []
+        for turma in turmas:
+            if turma.key.id() in form.turmas:
+                turmasatuais.append(turma)
+            else:
+                turmasoutros.append(turma)
+        page = {
+            "formulario": form,
+            "turmas":{
+                "atuais": turmasatuais,
+                "outras": turmasoutros
+            },
+            "perguntas":{
+                "atuais": pergsatuais,
+                "outras": pergsoutros
             }
-            data["aluno"] = id
-            DATA_COOKIE[cookie] = data
-            self.render("Admin/entidades.html", page=page)
-        else:
-            self.redirect('/login')
+        }
+        self.render("Admin/editarformulario.html", page=page)
+    
+    def put(self, id):
+        titulo = self.request.get('titulo')
+        descricao = self.request.get('descricao')
+        pergunta = self.request.get_all('pergunta')
+        turmas = self.request.get_all('turma')
+        if pergunta:
+            pergunta = list(map(int, pergunta))
+        if turmas:
+            turmas = list(map(int, turmas))
+        form = ndb.Key(Formulario, int(id)).get()
+        form.titulo = titulo
+        form.descricao = descricao
+        form.perguntas = pergunta
+        form.turmas = turmas
+        form.put()
+        time.sleep(.1)
+        self.redirect('/admin/formularios')
 
-    def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = data["aluno"]
-            matricula = self.request.get('matricula')
-            periodo = self.request.get('periodo')
-            nome = self.request.get('nome')
-            materias = self.request.get_all('materia')
-            if materias:
-                materias = list(map(int, materias))
-            aluno = ndb.Key(Aluno, id).get()
-            aluno.key.delete()
-            aluno = Aluno(
-                matricula=matricula,
-                periodo=periodo,
-                nome=nome,
-                materias=materias,
-                id=int(matricula),
-                user_id=int(matricula)
-            )
-            aluno.put()
-            time.sleep(.2)
-            data["aluno"] = None
-            DATA_COOKIE[cookie] = data
-            self.redirect('/listaralunos')
-        else:
-            self.redirect('/login')
+    def delete(self, id):
+        ndb.Key(Formulario, int(id)).delete()
+        time.sleep(.1)
+        self.redirect('/admin/formularios')
 
 
-class EditarMateria(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            mat = ndb.Key(Materia, id).get()
-            formularios = Formulario.query()
-            formulariost = []
-            formulariosnt = []
-            for form in formularios:
-                if form.user_id in mat.formularios:
-                    formulariost.append(form)
-                else:
-                    formulariosnt.append(form)
-            page = {
-                "titulo": u"Editar Matéria",
-                "subtitulo": u"Matéria",
-                "entidade": "materia",
-                "objeto": mat,
-                "objects": "formulario",
-                "objects_h": formulariost,
-                "objects_nh": formulariosnt,
-                "url": "editarmateria",
-                "button": None
-            }
-            data["materia"] = id
-            DATA_COOKIE[cookie] = data
-            self.render("Admin/entidades.html", page=page)
-        else:
-            self.redirect('/login')
-
-    def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = data["materia"]
-            titulo = self.request.get('titulo')
-            professor = self.request.get('professor')
-            periodo = self.request.get('periodo')
-            formularios = self.request.get_all('formulario')
-            if formularios:
-                formularios = list(map(int, formularios))
-            mat = ndb.Key(Materia, id).get()
-            mat.titulo = titulo
-            mat.professor = professor
-            mat.periodo = periodo
-            mat.formularios = formularios
-            mat.put()
-            time.sleep(.2)
-            data["materia"] = None
-            DATA_COOKIE[cookie] = data
-            self.redirect('/listarmaterias')
-        else:
-            self.redirect('/login')
-
-
-class EditarPergunta(Handler):
-    def get(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = int(self.request.get('id'))
-            perg = ndb.Key(Pergunta, id).get()
-            data["pergunta"] = id
-            DATA_COOKIE[cookie] = data
-            self.render("Admin/editarpergunta.html", pergunta=perg)
-        else:
-            self.redirect('/login')
+class PerguntaHandler(Handler):
+    def list_ents(self):
+        self.render("Admin/listar_perguntas.html")
+    
+    def list(self):
+        self.json_encode(Pergunta)
+    
+    def view(self):
+        self.render("Admin/criarpergunta.html")
     
     def post(self):
-        global DATA_COOKIE
-        cookie = self.request.cookies.get('__ck')
-        data = DATA_COOKIE.get(cookie, '')
-        if data and data['perm'] == 2:
-            id = data["pergunta"]
-            perg = ndb.Key(Pergunta, id).get()
-            enunciado = self.request.get('enunciado')
-            tipo = int(self.request.get('tipo'))
-            respostas = self.request.get_all('resposta')
-            perg.tipo = tipo
-            perg.enunciado = enunciado
-            perg.respostas = respostas
-            perg.put()
-            time.sleep(.1)
-            data["pergunta"] = None
-            DATA_COOKIE[cookie] = data
-            self.redirect('/listarperguntas')
-        else:
-            self.redirect('/login')
+        enunciado = self.request.get('enunciado')
+        tipo = self.request.get('tipo')
+        respostas = self.request.get_all('resposta')
+        avaliado = self.request.get('avaliado')
+        contador = Contador.query(Contador.user_id == 1).get()
+        if not contador:
+            contador = Contador()
+        perg = Pergunta(
+            user_id=contador.id_perguntas,
+            avaliado=self.getAvaliado(avaliado),
+            tipo=self.getTipo(tipo),
+            enunciado=enunciado,
+            respostas=respostas
+        )
+        contador.id_perguntas +=1
+        contador.put()
+        perg.put()
+        time.sleep(.1)
+        self.redirect('/admin/perguntas')
+    
+    def view_update(self, id):
+        perg = ndb.Key(Pergunta, int(id)).get()
+        page = {
+            "pergunta": perg
+        }
+        self.render("Admin/editarpergunta.html", page=page)
+    
+    def put(self, id):
+        enunciado = self.request.get('enunciado')
+        tipo = self.request.get('tipo')
+        respostas = self.request.get_all('resposta')
+        avaliado = self.request.get('avaliado')
+        perg = ndb.Key(Pergunta, int(id)).get()
+        perg.tipo = self.getTipo(tipo)
+        perg.avaliado = avaliado
+        perg.enunciado = enunciado
+        perg.respostas = respostas
+        perg.put()
+        time.sleep(.1)
+        self.redirect('/admin/perguntas')
+
+    def delete(self, id):
+        perg = ndb.Key(Pergunta, int(id)).delete()
+        time.sleep(.1)
+        self.redirect('/admin/perguntas')
+
+
+class MateriaHandler(Handler):
+    def list_ents(self):
+        self.render("Admin/listar_materias.html")
+    
+    def list(self):
+        self.json_encode(Materia)
+    
+    def view(self):
+        self.render("Admin/criarmateria.html")
+    
+    def post(self):
+        titulo = self.request.get('titulo')
+        professor = self.request.get('professor')
+        periodo = self.request.get('periodo')
+        contador = Contador.query(Contador.user_id == 1).get()
+        if not contador:
+            contador = Contador()
+        materia = Materia(
+            user_id=contador.id_materias,
+            titulo=titulo,
+            professor=professor,
+            periodo=periodo,
+        )
+        contador.id_materias += 1
+        contador.put()
+        materia.put()
+        time.sleep(.1)
+        self.redirect('/admin/materias')
+    
+    def view_update(self, id):
+        mat = ndb.Key(Materia, int(id)).get()
+        page = {
+            "materia": mat
+        }
+        self.render("Admin/editarmateria.html", page=page)
+    
+    def put(self, id):
+        titulo = self.request.get('titulo')
+        professor = self.request.get('professor')
+        periodo = self.request.get('periodo')
+        mat = ndb.Key(Materia, int(id)).get()
+        mat.titulo = titulo
+        mat.professor = professor
+        mat.periodo = periodo
+        mat.put()
+        time.sleep(.1)
+        self.redirect('/admin/materias')
+
+    def delete(self, id):
+        ndb.Key(Materia, int(id)).delete()
+        time.sleep(.1)
+        self.redirect('/admin/materias')
+
+
+class AlunoHandler(Handler):
+    def list_ents(self):
+        self.render("Admin/listar_alunos.html")
+    
+    def list(self):
+        self.json_encode(Aluno)
+    
+    def view(self):
+        self.render("Admin/criaraluno.html")
+    
+    def post(self):
+        matricula = self.request.get('matricula')
+        periodo = self.request.get('periodo')
+        nome = self.request.get('nome')
+        aluno = Aluno(
+            matricula=matricula,
+            periodo=periodo,
+            nome=nome
+        )
+        aluno.put()
+        time.sleep(.1)
+        self.redirect('/admin/alunos')
+    
+    def view_update(self, id):
+        aluno = ndb.Key(Aluno, int(id)).get()
+        page = {
+            "aluno": aluno
+        }
+        self.render("Admin/editaraluno.html", page=page)
+    
+    def put(self, id):
+        matricula = self.request.get('matricula')
+        periodo = self.request.get('periodo')
+        nome = self.request.get('nome')
+        aluno = ndb.Key(Aluno, int(id)).get()
+        aluno.matricula = matricula
+        aluno.periodo = periodo
+        aluno.nome = nome
+        aluno.put()
+        time.sleep(.1)
+        self.redirect('/admin/alunos')
+
+    def delete(self, id):
+        ndb.Key(Aluno, int(id)).delete()
+        time.sleep(.1)
+        self.redirect('/admin/alunos')
+
+
+class TurmaHandler(Handler):
+    def list_ents(self):
+        self.render("Admin/listar_turmas.html")
+    
+    def list(self):
+        self.json_encode(Turma)
+    
+    def view(self):
+        self.render("Admin/criarturma.html")
+    
+    def post(self):
+        periodo = self.request.get('periodo')
+        alunos = self.request.get_all('aluno')
+        materias = self.request.get_all('materia')
+        contador = Contador.query(Contador.user_id == 1).get()
+        if alunos:
+            alunos = list(map(int, alunos))
+        if materias:
+            materias = list(map(int, materias))
+        if not contador:
+            contador = Contador()
+        turma = Turma(
+            user_id=contador.id_turmas,
+            periodo = periodo,
+            alunos = alunos,
+            materias = materias
+        )
+        contador.id_turmas +=1
+        contador.put()
+        turma.put()
+        time.sleep(.1)
+        self.redirect('/admin/turmas')
+    
+    def view_update(self, id):
+        turma = ndb.Key(Turma, int(id)).get()
+        alunos = Aluno.query()
+        materias = Materia.query()
+        alunosatuais = []
+        alunosoutros = []
+        for aluno in alunos:
+            if aluno.key.id() in turma.alunos:
+                alunosatuais.append(aluno)
+            else:
+                alunosoutros.append(aluno)
+        
+        matsatuais = []
+        matsoutros = []
+        for materia in materias:
+            if materia.key.id() in turma.materias:
+                matsatuais.append(materia)
+            else:
+                matsoutros.append(materia)
+        
+        page = {
+            "turma": turma,
+            "alunos":{
+                "atuais": alunosatuais,
+                "outras": alunosoutros
+            },
+            "materias":{
+                "atuais": matsatuais,
+                "outras": matsoutros
+            }
+        }
+        self.render("Admin/editarturma.html", page=page)
+    
+    def put(self, id):
+        periodo = self.request.get('periodo')
+        alunos = self.request.get_all('aluno')
+        materias = self.request.get_all('materia')
+        if alunos:
+            alunos = list(map(int, alunos))
+        if materias:
+            materias = list(map(int, materias))
+        turma = ndb.Key(Turma, int(id)).get()
+        turma.periodo = periodo
+        turma.alunos = alunos
+        turma.materias = materias
+        turma.put()
+        time.sleep(.1)
+        self.redirect('/admin/turmas')
+
+    def delete(self, id):
+        ndb.Key(Turma, int(id)).delete()
+        time.sleep(.1)
+        self.redirect('/admin/turmas')
+##################################################################################
+
+class TesteHandler(Handler):
+    def get(self):
+        res = Resultado.query().fetch()
+        resu = []
+        for i in res:
+            resu.append(i)
+        self.write(resu)
 
 
 app = webapp2.WSGIApplication([
-    ('/tests', MainHandler),
+    ('/testessss', TesteHandler),
     ('/', LoginAlunoHandler),
-    ('/formularios', FormulariosHandler),
+    ('/alunos/formularios', AvaliacaoHandler),
+    webapp2.Route(name='avalicsdafaohandler.get', template=r'/alunos/formularios/<formulario:(\d+)>', methods='GET', handler=HandlerForm, handler_method='get'),
+    webapp2.Route(name='avalicaohandler.get', template=r'/alunos/pergunta/<id:(\d+)>', methods='GET', handler=AvaliacaoPerguntaHandler, handler_method='get'),
+    webapp2.Route(name='avalicaohandler.post', template=r'/alunos/pergunta/<id:(\d+)>', methods='POST', handler=AvaliacaoPerguntaHandler, handler_method='post'),
+    ('/alunos/points', CodigoHandler),
+    ('/login', LoginHandler),
+    ('/professor', ProfessorHandler),
+    ('/validar', ValidarCodigo),
+    ('/admin', AdministradorHandler),
+    webapp2.Route(name='formhandler.list_ents', template=r'/admin/formularios', methods='GET', handler=FormularioHandler, handler_method='list_ents'),
+    webapp2.Route(name='formhandler.list', template=r'/formularios', methods='GET', handler=FormularioHandler, handler_method='list'),
+    webapp2.Route(name='formhandler.view', template=r'/formulario/view_criar', methods=None, handler=FormularioHandler, handler_method='view'),
+    webapp2.Route(name='formhandler.post', template=r'/formulario/criar', methods=None, handler=FormularioHandler, handler_method='post'),
+    webapp2.Route(name='formhandler.view_update', template=r'/formulario/<id:(\d+)>/view_atualizar', methods=None, handler=FormularioHandler, handler_method='view_update'),
+    webapp2.Route(name='formhandler.put', template=r'/formulario/<id:(\d+)>/atualizar', methods=None, handler=FormularioHandler, handler_method='put'),
+    webapp2.Route(name='formhandler.delete', template=r'/formulario/<id:(\d+)>/apagar', methods=None, handler=FormularioHandler, handler_method='delete'),
+    webapp2.Route(name='perghandler.list_ents', template=r'/admin/perguntas', methods='GET', handler=PerguntaHandler, handler_method='list_ents'),
+    webapp2.Route(name='perghandler.list', template=r'/perguntas', methods='GET', handler=PerguntaHandler, handler_method='list'),
+    webapp2.Route(name='perghandler.view', template=r'/pergunta/view_criar', methods=None, handler=PerguntaHandler, handler_method='view'),
+    webapp2.Route(name='perghandler.post', template=r'/pergunta/criar', methods=None, handler=PerguntaHandler, handler_method='post'),
+    webapp2.Route(name='perghandler.view_update', template=r'/pergunta/<id:(\d+)>/view_atualizar', methods=None, handler=PerguntaHandler, handler_method='view_update'),
+    webapp2.Route(name='perghandler.put', template=r'/pergunta/<id:(\d+)>/atualizar', methods=None, handler=PerguntaHandler, handler_method='put'),
+    webapp2.Route(name='perghandler.delete', template=r'/pergunta/<id:(\d+)>/apagar', methods=None, handler=PerguntaHandler, handler_method='delete'),
+    webapp2.Route(name='mathandler.list_ents', template=r'/admin/materias', methods='GET', handler=MateriaHandler, handler_method='list_ents'),
+    webapp2.Route(name='mathandler.list', template=r'/materias', methods='GET', handler=MateriaHandler, handler_method='list'),
+    webapp2.Route(name='mathandler.view', template=r'/materia/view_criar', methods=None, handler=MateriaHandler, handler_method='view'),
+    webapp2.Route(name='mathandler.post', template=r'/materia/criar', methods=None, handler=MateriaHandler, handler_method='post'),
+    webapp2.Route(name='mathandler.view_update', template=r'/materia/<id:(\d+)>/view_atualizar', methods=None, handler=MateriaHandler, handler_method='view_update'),
+    webapp2.Route(name='mathandler.put', template=r'/materia/<id:(\d+)>/atualizar', methods=None, handler=MateriaHandler, handler_method='put'),
+    webapp2.Route(name='mathandler.delete', template=r'/materia/<id:(\d+)>/apagar', methods=None, handler=MateriaHandler, handler_method='delete'),
+    webapp2.Route(name='aluhandler.list_ents', template=r'/admin/alunos', methods='GET', handler=AlunoHandler, handler_method='list_ents'),
+    webapp2.Route(name='aluhandler.list', template=r'/alunos', methods='GET', handler=AlunoHandler, handler_method='list'),
+    webapp2.Route(name='aluhandler.view', template=r'/aluno/view_criar', methods=None, handler=AlunoHandler, handler_method='view'),
+    webapp2.Route(name='aluhandler.post', template=r'/aluno/criar', methods=None, handler=AlunoHandler, handler_method='post'),
+    webapp2.Route(name='aluhandler.view_update', template=r'/aluno/<id:(\d+)>/view_atualizar', methods=None, handler=AlunoHandler, handler_method='view_update'),
+    webapp2.Route(name='aluhandler.put', template=r'/aluno/<id:(\d+)>/atualizar', methods=None, handler=AlunoHandler, handler_method='put'),
+    webapp2.Route(name='aluhandler.delete', template=r'/aluno/<id:(\d+)>/apagar', methods=None, handler=AlunoHandler, handler_method='delete'),
+    webapp2.Route(name='turmahandler.list_ents', template=r'/admin/turmas', methods='GET', handler=TurmaHandler, handler_method='list_ents'),
+    webapp2.Route(name='turmahandler.list', template=r'/turmas', methods='GET', handler=TurmaHandler, handler_method='list'),
+    webapp2.Route(name='turmahandler.view', template=r'/turma/view_criar', methods=None, handler=TurmaHandler, handler_method='view'),
+    webapp2.Route(name='turmahandler.post', template=r'/turma/criar', methods=None, handler=TurmaHandler, handler_method='post'),
+    webapp2.Route(name='turmahandler.view_update', template=r'/turma/<id:(\d+)>/view_atualizar', methods=None, handler=TurmaHandler, handler_method='view_update'),
+    webapp2.Route(name='turmahandler.put', template=r'/turma/<id:(\d+)>/atualizar', methods=None, handler=TurmaHandler, handler_method='put'),
+    webapp2.Route(name='turmahandler.delete', template=r'/turma/<id:(\d+)>/apagar', methods=None, handler=TurmaHandler, handler_method='delete'),
+], debug=True)
+
+
+"""
+# app = webapp2.WSGIApplication([
+    # ('/tests', MainHandler),
+    # ('/tests', ListarFormularios),
+    ('/', LoginAlunoHandler),
+    # ('/formularios', FormulariosHandler),
     ('/avaliar', AvaliacaoHandler),
     ('/points', CodigoHandler),
     ('/login', LoginHandler),
     ('/professor', ProfessorHandler),
     ('/validar', ValidarCodigo),
     ('/admin', AdministradorHandler),
-    ('/criarformulario', CriarFormulario),
-    ('/criarmateria', CriarMateria),
-    ('/criarpergunta', CriarPergunta),
-    ('/criaraluno', CriarAluno),
-    ('/listarformularios', ListarFormularios),
-    ('/listarmaterias', ListarMaterias),
-    ('/listaralunos', ListarAlunos),
-    ('/listarperguntas', ListarPerguntas),
-    ('/editarformulario', EditarFormulario),
-    ('/editarmateria', EditarMateria),
-    ('/editaraluno', EditarAluno),
-    ('/editarpergunta', EditarPergunta),
-    ('/apagarformulario', ApagarFormulario),
-    ('/apagarpergunta', ApagarPergunta),
-    ('/apagarmateria', ApagarMateria),
-    ('/apagaraluno', ApagarAluno)
-], debug=True)
+    # ('/criarformulario', CriarFormulario),
+    # ('/criarmateria', CriarMateria),
+    # ('/criarpergunta', CriarPergunta),
+    # ('/criaraluno', CriarAluno),
+    # ('/listarformularios', ViewFormularios),
+    # ('/listarmaterias', ListarMaterias),
+    # ('/listaralunos', ListarAlunos),
+    # ('/listarperguntas', ListarPerguntas),
+    # ('/editarformulario', EditarFormulario),
+    # ('/editarmateria', EditarMateria),
+    # ('/editaraluno', EditarAluno),
+    # ('/editarpergunta', EditarPergunta),
+    # ('/apagarformulario', ApagarFormulario),
+    # ('/apagarpergunta', ApagarPergunta),
+    # ('/apagarmateria', ApagarMateria),
+    # ('/apagaraluno', ApagarAluno)
+# ], debug=True)
+"""
