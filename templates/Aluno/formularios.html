@@ -11,9 +11,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
-    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="stylesheet" href="../../assets/css/main.css" />
     <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
     <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+    
 </head>
 
 <body>
@@ -41,9 +42,9 @@
                     <li>
                         <a href="/login">Administrador</a>
                     </li>
-                    <li>
+                    <!-- <li>
                         <a href="/aluno">Aluno</a>
-                    </li>
+                    </li> -->
                     <li>
                         <a href="/professor">Professor</a>
                     </li>
@@ -56,38 +57,32 @@
         <section id="main" class="wrapper alt">
             <div class="inner">
                 <section class="spotlights">
-                    {% for formulario in formularios -%}
-                    <article>
-                        <header class="major">
-                            <p>{{ formulario.titulo }}</p>
-                            <!-- <i>
-                            <h4>Descrição do Form</h4>
-                        </i> -->
-                            <h5>
-                                <b>{{ formulario.descricao }}</b>
-                            </h5>
-                        </header>
-                        <form action="/formularios" method="post">
-                            <input type="hidden" name="form" value="{{ formulario.codigo }}">
-                            <ul class="actions">
-                                <li>
-                                    <input class="button big special" type="submit" value="Avaliar">
-                                </li>
-                                <li>
-                                    <div class="loading">
-                                        <div class="progress">
-                                            <div class="progress_bar" style="width: {{ formulario.progresso }}%;">
-                                            </div>
-                                            <div id="prog_status">
-                                                Progresso: {{ formulario.progresso }}%
+                        <div class="row uniform" align="center">
+                            {%- for formulario, progresso in page -%}
+                            <div>
+                                <div class="card  text-center" style="width: 18rem;">
+                                    <div class="card-header">
+                                        <h5 class="card-title">{{ formulario.titulo }}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ formulario.descricao }}</p>
+                                        <div class="card-body">
+                                            <div class="progress " align="center">
+                                                <div class="progress-bar bg-success" style="width: {{ progresso|string + '%' }};" aria-valuenow="{{ progresso }}" aria-valuemin="0" aria-valuemax="100">{{ progresso }}%</div>
                                             </div>
                                         </div>
+                                        {%- if progresso != 100 -%}
+                                        <ul class="actions">
+                                            <li>
+                                                <a href="/alunos/formularios/{{ formulario.key.id() }}" class="button special">Avaliar</a>
+                                            </li>
+                                        </ul>
+                                        {%- endif -%}
                                     </div>
-                                </li>
-                            </ul>
-                        </form>
-                    </article>
-                    {%- endfor -%}
+                                </div>
+                            </div>
+                            {%- endfor -%}
+                        </div>
                 </section>
             </div>
         </section>
@@ -101,13 +96,14 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../assets/js/jquery.min.js"></script>
-    <script src="../assets/js/skel.min.js"></script>
-    <script src="../assets/js/util.js"></script>
-    <script src="../assets/js/jquery.scrollex.min.js"></script>
-    <script src="../assets/js/jquery.scrolly.min.js"></script>
+    <script src="../../assets/js/jquery.min.js"></script>
+    <script src="../../assets/js/skel.min.js"></script>
+    <script src="../../assets/js/util.js"></script>
+    <script src="../../assets/js/jquery.scrollex.min.js"></script>
+    <script src="../../assets/js/jquery.scrolly.min.js"></script>
     <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
-    <script src="../assets/js/main.js"></script>
+    <script src="../../assets/js/main.js"></script>
+
 
 </body>
 
