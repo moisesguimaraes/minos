@@ -4,16 +4,45 @@
 from google.appengine.ext import ndb
 
 
-class Admin(ndb.Model):
-    usuario = ndb.StringProperty(indexed=False)
-    senha = ndb.StringProperty(indexed=False)
-
-
 class Pergunta(ndb.Model):
     user_id = ndb.IntegerProperty()
+    avaliado = ndb.IntegerProperty()
     tipo = ndb.IntegerProperty()
     enunciado = ndb.TextProperty()
     respostas = ndb.StringProperty(repeated=True)
+
+
+class Aluno(ndb.Model):
+    matricula = ndb.StringProperty()
+    nome = ndb.StringProperty(indexed=False)
+    periodo = ndb.StringProperty(indexed=False)
+
+    @classmethod
+    def query_aluno(cls, matricula):
+        al = cls.query()
+        als = None
+        for alu in al:
+            if alu.matricula == matricula:
+                als = alu
+                break
+        return als
+
+
+class Contador(ndb.Model):
+    user_id = ndb.IntegerProperty(default=1)
+    id_perguntas = ndb.IntegerProperty(default=1) 
+    id_formularios = ndb.IntegerProperty(default=1)
+    id_materias = ndb.IntegerProperty(default=1)
+    id_turmas = ndb.IntegerProperty(default=1)
+    maior_cod = ndb.IntegerProperty(default=1)
+
+
+
+class Turma(ndb.Model):
+    user_id = ndb.IntegerProperty()
+    periodo = ndb.StringProperty(indexed=False)
+    alunos = ndb.IntegerProperty(repeated=True)
+    materias = ndb.IntegerProperty(repeated=True)
 
 
 class Formulario(ndb.Model):
@@ -21,42 +50,45 @@ class Formulario(ndb.Model):
     titulo = ndb.StringProperty(indexed=False)
     descricao = ndb.StringProperty(indexed=False)
     perguntas = ndb.IntegerProperty(repeated=True)
+    turmas = ndb.IntegerProperty(repeated=True)
 
-
+ 
 class Materia(ndb.Model):
     user_id = ndb.IntegerProperty()
     titulo = ndb.StringProperty(indexed=False)
     professor = ndb.StringProperty(indexed=False)
     periodo = ndb.StringProperty(indexed=False)
-    formularios = ndb.IntegerProperty(repeated=True)
 
 
-class Aluno(ndb.Model):
-    user_id = ndb.IntegerProperty()
-    matricula = ndb.StringProperty(indexed=False)
-    nome = ndb.StringProperty(indexed=False)
-    periodo = ndb.StringProperty(indexed=False)
-    materias = ndb.IntegerProperty(repeated=True)
+
+######################################################
+
+
+class Admin(ndb.Model):
+    usuario = ndb.StringProperty(indexed=False)
+    senha = ndb.StringProperty(indexed=False)
+
+
+
 
 
 class Codigo(ndb.Model):
+    id_aluno = ndb.IntegerProperty()
+    id_formulario = ndb.IntegerProperty()
     nomeAluno = ndb.StringProperty()
     periodo = ndb.StringProperty(indexed=False)
     codigo = ndb.StringProperty()
-    formulario = ndb.IntegerProperty()
 
-class Contador(ndb.Model):
-    id_perguntas = ndb.IntegerProperty() 
-    id_formularios = ndb.IntegerProperty()
-    id_materias = ndb.IntegerProperty()
-    maior_cod = ndb.IntegerProperty()
 
 class Resultado(ndb.Model):
-    materia = ndb.StringProperty(indexed=False)
+    id_aluno = ndb.IntegerProperty()
+    id_formulario = ndb.IntegerProperty()
+    id_pergunta = ndb.IntegerProperty()
     enunciado = ndb.StringProperty(indexed=False)
-    respostas = ndb.StringProperty(repeated=True)
+    respostas = ndb.JsonProperty(compressed=True)
 
 class Progresso(ndb.Model):
-    matricula = ndb.IntegerProperty()
+    user_id = ndb.IntegerProperty()
+    matricula = ndb.StringProperty()
     formulario = ndb.IntegerProperty()
     progresso = ndb.IntegerProperty()
