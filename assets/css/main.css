@@ -2352,10 +2352,10 @@ table.alt tbody tr td {
   .wrapper.alt {
     padding-bottom: 1em; }
     .wrapper.alt:after {
-      -moz-transform: translateY(100%) rotate(180deg);
+      /* -moz-transform: translateY(100%) rotate(180deg);
       -webkit-transform: translateY(100%) rotate(180deg);
       -ms-transform: translateY(100%) rotate(180deg);
-      transform: translateY(100%) rotate(180deg);
+      transform: translateY(100%) rotate(180deg); */
       bottom: 0;
       content: ''; }
   .wrapper.style1 {

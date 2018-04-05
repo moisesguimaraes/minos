@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base2.html" %}
 
 {% block title %}IFPB{% endblock %}
 
@@ -10,12 +10,11 @@
 <!-- Banner -->
 <section id="banner">
     <div class="inner">
-        <form action="/" method="post">
+        <form action="/curso/{{ page.curso.cod }}/loginaluno" method="post">
             <center>
                 <h2 style="color: white">Avaliação de Curso</h2>
-                <h1 style="color: white">CST em Gestão Comercial</h1>
+                <h1 style="color: white">{{ page.curso.nome }}</h1>
                 <div class="field half first">
-
                     <center>
                         <input autofocus name="mat" id="name" type="text" style="background-color: #35977f" placeholder="Matrícula">
                     </center>

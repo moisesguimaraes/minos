@@ -19,7 +19,7 @@
     
 </head>
 
-<body>
+<body style="height: 100%;">
 
     <!-- Page wrapper -->
     <div id="page-wrapper">
@@ -41,7 +41,13 @@
                         <a href="/">Home</a>
                     </li>
                     <li>
-                        <a href="/logout">Sair</a>
+                        <a href="/curso/{{ page.curso.cod }}/login">Administrador</a>
+                    </li>
+                    <!-- <li>
+                        <a href="/aluno">Aluno</a>
+                    </li> -->
+                    <li>
+                        <a href="/curso/{{ page.curso.cod }}/professor">Professor</a>
                     </li>
                 </ul>
                 <a class="close">Close</a>

@@ -5,6 +5,7 @@ from google.appengine.ext import ndb
 
 
 class Pergunta(ndb.Model):
+    id_curso = ndb.IntegerProperty()
     user_id = ndb.IntegerProperty()
     avaliado = ndb.IntegerProperty()
     tipo = ndb.IntegerProperty()
@@ -13,6 +14,7 @@ class Pergunta(ndb.Model):
 
 
 class Aluno(ndb.Model):
+    id_curso = ndb.IntegerProperty()
     matricula = ndb.StringProperty()
     nome = ndb.StringProperty(indexed=False)
     periodo = ndb.StringProperty(indexed=False)
@@ -39,6 +41,7 @@ class Contador(ndb.Model):
 
 
 class Turma(ndb.Model):
+    id_curso = ndb.IntegerProperty()
     user_id = ndb.IntegerProperty()
     periodo = ndb.StringProperty(indexed=False)
     alunos = ndb.IntegerProperty(repeated=True)
@@ -46,6 +49,7 @@ class Turma(ndb.Model):
 
 
 class Formulario(ndb.Model):
+    id_curso = ndb.IntegerProperty()
     user_id = ndb.IntegerProperty()
     titulo = ndb.StringProperty(indexed=False)
     descricao = ndb.StringProperty(indexed=False)
@@ -54,6 +58,7 @@ class Formulario(ndb.Model):
 
  
 class Materia(ndb.Model):
+    id_curso = ndb.IntegerProperty()
     user_id = ndb.IntegerProperty()
     titulo = ndb.StringProperty(indexed=False)
     professor = ndb.StringProperty(indexed=False)
@@ -81,6 +86,7 @@ class Codigo(ndb.Model):
 
 
 class Resultado(ndb.Model):
+    id_curso = ndb.IntegerProperty()
     id_aluno = ndb.IntegerProperty()
     id_formulario = ndb.IntegerProperty()
     id_pergunta = ndb.IntegerProperty()
