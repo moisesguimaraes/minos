@@ -1166,11 +1166,12 @@ class TurmaHandler(Handler):
 
 class TesteHandler(Handler):
     def get(self):
-        res = Resultado.query().fetch()
-        resu = []
-        for i in res:
-            resu.append(i)
-        self.write(resu)
+        self.render("Admin/listar_relatorio.html")
+        # res = Resultado.query().fetch()
+        # resu = []
+        # for i in res:
+        #     resu.append(i)
+        # self.write(resu)
 
 
 class LogoutHandler(Handler):
