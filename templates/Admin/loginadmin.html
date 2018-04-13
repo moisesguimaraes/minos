@@ -7,32 +7,29 @@
 {% set alt = "alt" %}
 
 {%- block base_content -%}
-        <section id="banner">
-            <div class="inner">
-                <form action="/curso/{{ page.curso.cod }}/login" method="post">
+<section id="banner">
+    <div class="inner">
+        <form action="/login" method="post">
+            <center>
+                <h1>Login Administração</h1>
+                <div class="field half first">
                     <center>
-                        <h1>{{ page.curso.nome }}</h1>
-                        <div class="field half first">
-                            <label for="user"> </label>
-                            <center>
-                                <input style="background: #39a288;" autofocus name="usuario" id="user" type="text" placeholder="Usuario" />
-                            </center>
-                        </div>
-
-                        <div class="field half first">
-                            <label for="senha"> </label>
-                            <center>
-                                <input style="background: #39a288;" name="senha" id="senha" type="password" placeholder="Senha" />
-                            </center>
-                        </div>
-                        <ul class="actions">
-                            <li>
-                                <input class="button big special" type="submit" value="Entrar">
-                            </li>
-                        </ul>
+                        <input style="background: #39a288;" autofocus name="usuario" id="user" type="text" placeholder="Usuario" />
                     </center>
-                </form>
-            </div>
-        </section>
+                </div>
+
+                <div class="field half first">
+                    <center>
+                        <input style="background: #39a288;" name="senha" id="senha" type="password" placeholder="Senha" />
+                    </center>
+                </div>
+                <ul class="actions">
+                    <li>
+                        <input class="button big special" type="submit" value="Entrar">
+                    </li>
+                </ul>
+            </center>
+        </form>
     </div>
+</section>
 {%- endblock-%}

@@ -6,7 +6,6 @@
 {% block subtitulo %}Turma{% endblock %}
 
 {%- block base_content -%}
-
 <section id="main" class="wrapper alt">
     <div class="inner">
 
@@ -18,17 +17,42 @@
 
             <section class="spotlights">
                 <article>
-                        <center>
+                    <center>
                         <h3>Turma</h3>
-                    <div class="row">
-                        <div class="9u 12u$(small)">
-                            <label for="inp1">Periodo:</label>
-                            <input id="inp1" type="text" class="demo-name" name="periodo" value="">
+                        <div class="row">
+                            <div class="9u 12u$(small)">
+                                <label for="inp1">Periodo:</label>
+                                <input id="inp1" type="text" class="demo-name" name="periodo" value="">
+                            </div>
                         </div>
-                    </div>
                     </center>
                 </article>
             </section>
+
+            <div class="box">
+                <center>
+                    <h3>Cursos</h3>
+                </center>
+                <div class="table-wrapper box" style="height: 440px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cod</th>
+                                <th>Nome</th>
+                                <th>Descrição</th>
+                                <th>Opção</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbcursos"></tbody>
+                        <tfoot id="tfcursos">
+                            <tr>
+                                <td>Total</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
 
             <div class="box">
                 <center>
@@ -103,5 +127,6 @@
 
 <script src="assets/js/Admin/listar_materias_update.js"></script>
 <script src="assets/js/Admin/listar_alunos_update.js"></script>
+<script src="assets/js/Admin/listar_cursos_update.js"></script>
 
 {% endblock %}

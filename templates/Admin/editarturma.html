@@ -31,6 +31,32 @@
             </section>
 
             <div class="box">
+                    <center>
+                        <h3>Cursos</h3>
+                    </center>
+                    <div class="table-wrapper box" style="height: 440px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cod</th>
+                                    <th>Nome</th>
+                                    <th>Descrição</th>
+                                    <th>Opção</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbcursos">
+                                {%- for curso in page.cursos.atuais -%}
+                                <tr><td>{{ curso.cod }}</td><td>{{ curso.nome }}</td><td>{{ curso.descricao }}</td><td><input id="{{'cursoa' + loop.index|string }}" type="checkbox" name="curso" value="{{ curso.key.id() }}" checked><label for="{{'cursoa' + loop.index|string }}"></label></td></tr>
+                                {%- endfor -%}
+                                {%- for curso in page.cursos.outras -%}
+                                <tr><td>{{ curso.cod }}</td><td>{{ curso.nome }}</td><td>{{ curso.descricao }}</td><td><input id="{{'cursoo' + loop.index|string }}" type="checkbox" name="curso" value="{{ curso.key.id() }}"><label for="{{'cursoo' + loop.index|string }}"></label></td></tr>
+                                {%- endfor -%}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            <div class="box">
                 <center>
                     <h3>Alunos</h3>
                 </center>

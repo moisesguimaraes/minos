@@ -5,7 +5,6 @@ from google.appengine.ext import ndb
 
 
 class Pergunta(ndb.Model):
-    id_curso = ndb.IntegerProperty()
     user_id = ndb.IntegerProperty()
     avaliado = ndb.IntegerProperty()
     tipo = ndb.IntegerProperty()
@@ -14,7 +13,6 @@ class Pergunta(ndb.Model):
 
 
 class Aluno(ndb.Model):
-    id_curso = ndb.IntegerProperty()
     matricula = ndb.StringProperty()
     nome = ndb.StringProperty(indexed=False)
     periodo = ndb.StringProperty(indexed=False)
@@ -37,7 +35,7 @@ class Contador(ndb.Model):
     id_materias = ndb.IntegerProperty(default=1)
     id_turmas = ndb.IntegerProperty(default=1)
     maior_cod = ndb.IntegerProperty(default=1)
-
+    id_cursos = ndb.IntegerProperty(default=1)
 
 
 class Turma(ndb.Model):
@@ -49,7 +47,6 @@ class Turma(ndb.Model):
 
 
 class Formulario(ndb.Model):
-    id_curso = ndb.IntegerProperty()
     user_id = ndb.IntegerProperty()
     titulo = ndb.StringProperty(indexed=False)
     descricao = ndb.StringProperty(indexed=False)
@@ -65,16 +62,9 @@ class Materia(ndb.Model):
     periodo = ndb.StringProperty(indexed=False)
 
 
-
-######################################################
-
-
 class Admin(ndb.Model):
     usuario = ndb.StringProperty(indexed=False)
     senha = ndb.StringProperty(indexed=False)
-
-
-
 
 
 class Codigo(ndb.Model):
@@ -91,10 +81,22 @@ class Resultado(ndb.Model):
     id_formulario = ndb.IntegerProperty()
     id_pergunta = ndb.IntegerProperty()
     enunciado = ndb.StringProperty(indexed=False)
-    respostas = ndb.JsonProperty(compressed=True)
+    respostas = ndb.StringProperty(repeated=True,indexed=False)
+    matricula_aluno  = ndb.StringProperty(indexed=False)
+    titulo_formulario = ndb.StringProperty(indexed=False)
+    periodo = ndb.StringProperty(indexed=False)
+    avaliado = ndb.StringProperty(indexed=False)
+    nome_curso = ndb.StringProperty(indexed=False)
+
 
 class Progresso(ndb.Model):
     user_id = ndb.IntegerProperty()
     matricula = ndb.StringProperty()
     formulario = ndb.IntegerProperty()
     progresso = ndb.IntegerProperty()
+
+
+class Curso(ndb.Model):
+    cod = ndb.IntegerProperty()
+    nome = ndb.StringProperty()
+    descricao = ndb.StringProperty()

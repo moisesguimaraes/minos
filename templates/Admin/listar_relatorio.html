@@ -24,23 +24,20 @@
             <table id="myTable">
                 <thead>
                     <tr>
-
-                        <th>NOME RELATORIO</th>
-                        <th>LINK PARA DOWNLOAD</th>
+                        <th>Nome Formulario</th>
+                        <th>Link de Download</th>
                     </tr>
                 </thead>
-                <tbody id="tbforms"></tbody>
-                <tfoot id="tfforms">
+                <tbody>
+                    {%- for form in page.formularios -%}
                     <tr>
-                        <td>EX: NOME RELATÓRIO</td>
-                        <td colspan="2">
-                            
-                                        <a href="/formulario/view_criar" class="button special big">GERAR</a>
-    
+                        <td>{{ form.titulo }}</td>
+                        <td>
+                            <button class="button special big" onclick="exportXLSX({{ form.key.id() }})">Download</a>
                         </td>
                     </tr>
-                    
-                </tfoot>
+                    {%- endfor -%}
+                </tbody>
             </table>
         </div>
     </div>
@@ -48,4 +45,49 @@
 
 {%- endblock -%}
 
-{% block scripts %} <script src="assets/js/Admin/listar_formularios.js"></script> {% endblock %}
+{% block scripts %}
+<script type="text/javascript" src="assets/js/xlsx/shim.min.js"></script>
+<script type="text/javascript" src="assets/js/xlsx/xlsx.full.min.js"></script>
+<script src="https://d3js.org/d3-collection.v1.min.js"></script>
+<script>
+    function exportXLSX(id){
+        var resultados = null;
+        $.getJSON("/resultados/" + id).done(function(data){
+            resultados = data;
+            if(resultados){
+                var saida = ["Matricula", "Curso", "Periodo", "Avaliado", "Enunciado", "Resposta"];
+                // for( i =0; i < resultados.resultados.length; i++){
+                //     var obj = JSON.parse(resultados.resultados[i].respostas);
+                //     console.log(obj['Português']);
+                // }
+                var results = JSON.parse(resultados.resultados);
+                console.log(results);
+                var lista = [];
+                for(var jj in results){
+                    var res = results[jj]
+                    var g = [
+                        res.matricula_aluno,
+                        res.nome_curso,
+                        res.periodo,
+                        res.avaliado,
+                        res.enunciado,
+                        res.respostas.join()
+                    ]
+                    lista.push(g);
+                }
+
+                lista.splice(0,0,saida);
+                console.log(lista);
+                if (typeof require !== 'undefined') XLSX = require('xlsx');
+                var wb = XLSX.utils.book_new();
+                var ws = XLSX.utils.aoa_to_sheet(lista);
+                XLSX.utils.book_append_sheet(wb, ws, "Resultados");
+                XLSX.writeFile(wb, "form1.xlsx", { compression: true });
+            }
+            else{
+                alert("Nenhuma resultado encontrado!!");
+            }
+        });
+    }
+</script>
+{% endblock %}

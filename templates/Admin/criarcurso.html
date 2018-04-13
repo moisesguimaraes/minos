@@ -1,0 +1,53 @@
+ 
+{% extends "base.html" %}
+
+{% block title %} Curso{% endblock %}
+
+{% block subtitulo %}Curso{% endblock %}
+
+{%- block base_content -%}
+
+<section id="main" class="wrapper alt">
+    <div class="inner">
+
+        <center>
+            <h1>Criar Curso</h1>
+        </center>
+
+        <form action="/curso/criar" method="post">
+
+            <section class="spotlights">
+                <article>
+                    <center>
+                        <h3>Curso</h3>
+                    </center>
+                    <div class="row">
+                        <div class="9u 12u$(small)">
+                            <label for="inp2">Nome:</label>
+                            <input id="inp2" type="text" class="demo-name" name="nome" >
+                            <label for="inp3">Descrição:</label>
+                            <input id="inp3" type="text" class="demo-name" name="descricao" >
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <div>
+                <center>
+                    <ul class="actions">
+                        <li>
+                            <a href="/admin/cursos" class="button">Cancelar</a>
+                        </li>
+                        <li>
+                            <input type="submit" value="Concluir">
+                        </li>
+                    </ul>
+                </center>
+            </div>
+        </form>
+    </div>
+</section>
+
+{%- endblock -%}
+
+{% block scripts %}{% endblock %}

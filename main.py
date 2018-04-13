@@ -12,6 +12,7 @@ from os.path import dirname, join
 
 import jinja2
 import webapp2
+from webapp2 import Route
 
 from google.appengine.ext import ndb
 from models import *
@@ -47,14 +48,13 @@ class Handler(webapp2.RequestHandler):
     def render(self, *template, **kw):
         self.write(self.render_str(*template, **kw))
 
-    def json_encode(self, o, id_curso):
+    def json_encode(self, o):
         self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
         query = o.query()
         query_dict = [
             dict(q.to_dict(),
             **dict(id=q.key.id()))
-            for q in query
-                if q.id_curso == id_curso]
+            for q in query]
         self.write(json.dumps(query_dict))
     
     def getTipo(self, tipo):
@@ -72,69 +72,22 @@ class Handler(webapp2.RequestHandler):
             return 2
 
 
-# class MainHandler(Handler):
-
-#     def get(self):
-#         self.write(GESTAO_COMERCIAL_HTML)
-
-
-class Index(Handler):
-    
-    def get(self):
-        # self.write(self.request.url)
-        self.render("telainicial.html")
-
-
 class LoginAlunoHandler(Handler):
 
-    def get(self, id_curso):
-        page = None
-        id_curso = int(id_curso)
-        if id_curso == 1:
-            page = {
-                "curso": {
-                "nome": u'CTI de Informática',
-                "cod": 1
-                }
-            }
-        elif id_curso == 2:
-            page = {
-                "curso": {
-                "nome": u'CTI de Edificações',
-                "cod": 2
-                }
-            }
-        elif id_curso == 3:
-            page = {
-                "curso": {
-                "nome": u'CTI de Contabilidade',
-                "cod": 3
-                }
-            }
-        elif id_curso == 4:
-            page = {
-                "curso": {
-                "nome": u'CST de Gestão Comercial',
-                "cod": 4
-                }
-            }
-        self.render("Aluno/loginaluno.html", page=page)
+    def get(self):
+        self.render("Aluno/loginaluno.html")
 
-    def post(self, id_curso):
+    def post(self):
         global DATA_COOKIE
         try:
             matricula = self.request.get('mat')
             # aluno = ndb.Key(Aluno, matricula).get()
             aluno = Aluno.query_aluno(matricula)
-            if (aluno != None) \
-                and (matricula == aluno.matricula) \
-                and (int(id_curso) in [1,2,3,4]) \
-                and (aluno.id_curso == int(id_curso)):
+            if aluno and matricula == aluno.matricula :
                 cookie = gerador_cookie()
                 data = {
                     'user': aluno,
-                    'perm': 1,
-                    'code': int(id_curso)
+                    'perm': 1
                 }
                 DATA_COOKIE[cookie] = data
                 self.response.set_cookie(key='__ck', value=cookie)
@@ -147,57 +100,26 @@ class LoginAlunoHandler(Handler):
 
 class LoginHandler(Handler):
 
-    def get(self, id_curso):
-        page = None
-        id_curso = int(id_curso)
-        if id_curso == 1:
-            page = {
-                "curso": {
-                "nome": u'CTI de Informática',
-                "cod": 1
-                }
-            }
-        elif id_curso == 2:
-            page = {
-                "curso": {
-                "nome": u'CTI de Edificações',
-                "cod": 2
-                }
-            }
-        elif id_curso == 3:
-            page = {
-                "curso": {
-                "nome": u'CTI de Contabilidade',
-                "cod": 3
-                }
-            }
-        elif id_curso == 4:
-            page = {
-                "curso": {
-                "nome": u'CST de Gestão Comercial',
-                "cod": 4
-                }
-            }
-        self.render("Admin/loginadmin.html", page=page)
+    def get(self):
+        self.render("Admin/loginadmin.html")
 
-    def post(self, id_curso):
+    def post(self):
         global DATA_COOKIE
         try:
             usuario = self.request.get('usuario')
             senha = self.request.get('senha')
-            if usuario == "a" and senha == "a" and (int(id_curso) in [1,2,3,4]):
+            if usuario == "a" and senha == "a":
                 cookie = gerador_cookie()
                 data = {
-                    "perm": 2,
-                    "code": int(id_curso)
+                    "perm": 2
                 }
                 DATA_COOKIE[cookie] = data
                 self.response.set_cookie(key='__ck', value=cookie)
                 self.redirect('/admin')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 class AvaliacaoHandler(Handler):
@@ -319,7 +241,8 @@ class AvaliacaoPerguntaHandler(Handler):
                 turma = data['turma']
                 formulario = data['form']
                 pergunta = ndb.Key(Pergunta, int(id)).get()
-                avaliado = {}
+                curso = ndb.Key(Curso, int(turma.id_curso)).get()
+                res = []
                 if pergunta.avaliado == 1:
                     if data.get('materias', ''):
                         materias = data['materias']
@@ -330,19 +253,37 @@ class AvaliacaoPerguntaHandler(Handler):
                         data['materias'] = materias
                     if materias:
                         for materia in materias:
-                            resposta =  self.request.get_all(materia.titulo)
-                            avaliado[materia.titulo] = resposta
+                            res.append(
+                                Resultado(
+                                    id_curso=turma.id_curso,
+                                    id_aluno=user.key.id(),
+                                    matricula_aluno=user.matricula,
+                                    id_formulario=formulario.key.id(),
+                                    id_pergunta=pergunta.key.id(),
+                                    titulo_formulario=formulario.titulo,
+                                    enunciado=pergunta.enunciado,
+                                    respostas=self.request.get_all(materia.titulo),
+                                    periodo=user.periodo,
+                                    avaliado=materia.titulo,
+                                    nome_curso=curso.nome
+                                )
+                            )
                 else:
-                    resposta = self.request.get_all('outros')
-                    avaliado['outros'] = resposta
-                avaliado = json.dumps(avaliado)
-                res = Resultado(
-                    id_aluno=user.key.id(),
-                    id_formulario=formulario.key.id(),
-                    id_pergunta=pergunta.key.id(),
-                    enunciado=pergunta.enunciado,
-                    respostas=avaliado
-                )
+                    res.append(
+                        Resultado(
+                            id_curso=turma.id_curso,
+                            id_aluno=user.key.id(),
+                            matricula_aluno=user.matricula,
+                            id_formulario=formulario.key.id(),
+                            id_pergunta=pergunta.key.id(),
+                            titulo_formulario=formulario.titulo,
+                            enunciado=pergunta.enunciado,
+                            respostas=self.request.get_all('outros'),
+                            periodo=user.periodo,
+                            avaliado='outros',
+                            nome_curso=curso.nome
+                        )
+                    )
                 prog = Progresso.query(ndb.AND(
                         Progresso.user_id == user.key.id(),
                         Progresso.formulario == formulario.key.id()
@@ -356,7 +297,8 @@ class AvaliacaoPerguntaHandler(Handler):
                         formulario=formulario.key.id(),
                         progresso=1
                     )
-                ndb.put_multi([res, prog])
+                ndb.put_multi(res)
+                prog.put()
                 time.sleep(.1)
                 if len(formulario.perguntas) > prog.progresso:
                     self.redirect('/alunos/pergunta/%d' % (
@@ -392,11 +334,12 @@ class CodigoHandler(Handler):
                     nomeAluno=aluno.nome,
                     periodo=aluno.periodo,
                     id_formulario=form.key.id(),
-                    codigo=str("GEST" + str(cont.maior_cod))
+                    codigo=str("COD" + str(cont.maior_cod))
                 )
                 cont.maior_cod += 1
                 codigo = cod.codigo[:]
                 cod.put()
+                cont.put()
                 time.sleep(.1)
                 self.render("Aluno/gratificacao.html", codigo=codigo)
             else:
@@ -407,43 +350,13 @@ class CodigoHandler(Handler):
 
 class ProfessorHandler(Handler):
     
-    def get(self, id_curso):
-        page = None
-        id_curso = int(id_curso)
-        if id_curso == 1:
-            page = {
-                "curso": {
-                "nome": u'CTI de Informática',
-                "cod": 1
-                }
-            }
-        elif id_curso == 2:
-            page = {
-                "curso": {
-                "nome": u'CTI de Edificações',
-                "cod": 2
-                }
-            }
-        elif id_curso == 3:
-            page = {
-                "curso": {
-                "nome": u'CTI de Contabilidade',
-                "cod": 3
-                }
-            }
-        elif id_curso == 4:
-            page = {
-                "curso": {
-                "nome": u'CST de Gestão Comercial',
-                "cod": 4
-                }
-            }
-        self.render("Prof/professor.html", page=page)
+    def get(self):
+        self.render("Prof/professor.html")
     
-    def post(self, id_curso):
+    def post(self):
         global DATA_COOKIE
         codigo = self.request.get('codigo')
-        if codigo and (int(id_curso) in [1,2,3,4]):
+        if codigo:
             codigos = Codigo.query(
                 Codigo.codigo == codigo
             ).fetch(keys_only=True)
@@ -452,15 +365,15 @@ class ProfessorHandler(Handler):
                 cookie = gerador_cookie()
                 data = {
                     "codigo": cod,
-                    "cod": int(id_curso)
+                    'perm': 3
                 }
                 DATA_COOKIE[cookie] = data
                 self.response.set_cookie(key='__ck', value=cookie)
                 self.redirect('/validar')
             else:
-                self.redirect('/')
+                self.redirect('/professor')
         else:
-            self.redirect('/')
+            self.redirect('/professor')
 
 
 class ValidarCodigo(Handler):
@@ -469,29 +382,29 @@ class ValidarCodigo(Handler):
         global DATA_COOKIE
         cookie = self.request.cookies.get('__ck')
         data = DATA_COOKIE.get(cookie, '')
-        if data and data['codigo']:
+        if data and data.get('codigo','') != '' and data.get('perm','') == 3:
             cod = data['codigo']
             if cod:
                 self.render("Prof/validar.html", codigo=cod)
             else:
-                self.redirect('/')
+                self.redirect('/professor')
         else:
-            self.redirect('/')
+            self.redirect('/professor')
 
     def post(self):
         global DATA_COOKIE
         cookie = self.request.cookies.get('__ck')
         data = DATA_COOKIE.get(cookie, '')
-        if data and data['codigo']:
+        if data and data['codigo'] and data.get('perm','') == 3:
             cod = data['codigo']
             if cod:
                 cod.key.delete()
                 time.sleep(.1)
-            self.redirect('/')
+            self.redirect('/professor')
         else:
-            self.redirect('/')
+            self.redirect('/professor')
 
-###############################################################################3
+
 class AdministradorHandler(Handler):
 
     def get(self):
@@ -501,7 +414,7 @@ class AdministradorHandler(Handler):
         if data and data['perm'] == 2:
             self.render("Admin/administrador.html")
         else:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 class FormularioHandler(Handler):
@@ -513,9 +426,9 @@ class FormularioHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/listar_formularios.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
             
     
     def list(self):
@@ -524,11 +437,11 @@ class FormularioHandler(Handler):
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
-                self.json_encode(Formulario, data['code'])
+                self.json_encode(Formulario)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view(self):
         global DATA_COOKIE
@@ -538,9 +451,9 @@ class FormularioHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/criarformulario.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def post(self):
         global DATA_COOKIE
@@ -560,7 +473,6 @@ class FormularioHandler(Handler):
                 if not contador:
                     contador = Contador()
                 form = Formulario(
-                    id_curso=int(data['code']),
                     user_id=contador.id_formularios,
                     titulo=titulo,
                     descricao=descricao,
@@ -573,9 +485,9 @@ class FormularioHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/formularios')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view_update(self, id):
         global DATA_COOKIE
@@ -614,9 +526,9 @@ class FormularioHandler(Handler):
                 }
                 self.render("Admin/editarformulario.html", page=page)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def put(self, id):
         global DATA_COOKIE
@@ -641,9 +553,9 @@ class FormularioHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/formularios')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
     def delete(self, id):
         global DATA_COOKIE
@@ -655,9 +567,9 @@ class FormularioHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/formularios')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 class PerguntaHandler(Handler):
@@ -669,9 +581,9 @@ class PerguntaHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/listar_perguntas.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def list(self):
         global DATA_COOKIE
@@ -679,11 +591,11 @@ class PerguntaHandler(Handler):
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
-                self.json_encode(Pergunta, data['code'])
+                self.json_encode(Pergunta)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view(self):
         global DATA_COOKIE
@@ -693,9 +605,9 @@ class PerguntaHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/criarpergunta.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def post(self):
         global DATA_COOKIE
@@ -711,7 +623,6 @@ class PerguntaHandler(Handler):
                 if not contador:
                     contador = Contador()
                 perg = Pergunta(
-                    id_curso=int(data['code']),
                     user_id=contador.id_perguntas,
                     avaliado=self.getAvaliado(avaliado),
                     tipo=self.getTipo(tipo),
@@ -724,9 +635,9 @@ class PerguntaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/perguntas')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view_update(self, id):
         global DATA_COOKIE
@@ -740,9 +651,9 @@ class PerguntaHandler(Handler):
                 }
                 self.render("Admin/editarpergunta.html", page=page)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def put(self, id):
         global DATA_COOKIE
@@ -763,9 +674,9 @@ class PerguntaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/perguntas')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
     def delete(self, id):
         global DATA_COOKIE
@@ -777,9 +688,9 @@ class PerguntaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/perguntas')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 class MateriaHandler(Handler):
@@ -791,9 +702,9 @@ class MateriaHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/listar_materias.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def list(self):
         global DATA_COOKIE
@@ -801,11 +712,11 @@ class MateriaHandler(Handler):
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
-                self.json_encode(Materia, data['code'])
+                self.json_encode(Materia)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view(self):
         global DATA_COOKIE
@@ -815,9 +726,9 @@ class MateriaHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/criarmateria.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def post(self):
         global DATA_COOKIE
@@ -832,7 +743,6 @@ class MateriaHandler(Handler):
                 if not contador:
                     contador = Contador()
                 materia = Materia(
-                    id_curso=int(data['code']),
                     user_id=contador.id_materias,
                     titulo=titulo,
                     professor=professor,
@@ -844,9 +754,9 @@ class MateriaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/materias')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view_update(self, id):
         global DATA_COOKIE
@@ -860,9 +770,9 @@ class MateriaHandler(Handler):
                 }
                 self.render("Admin/editarmateria.html", page=page)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def put(self, id):
         global DATA_COOKIE
@@ -881,9 +791,9 @@ class MateriaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/materias')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
     def delete(self, id):
         global DATA_COOKIE
@@ -895,9 +805,9 @@ class MateriaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/materias')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 class AlunoHandler(Handler):
@@ -909,9 +819,9 @@ class AlunoHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/listar_alunos.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def list(self):
         global DATA_COOKIE
@@ -919,11 +829,11 @@ class AlunoHandler(Handler):
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
-                self.json_encode(Aluno, data['code'])
+                self.json_encode(Aluno)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view(self):
         global DATA_COOKIE
@@ -933,9 +843,9 @@ class AlunoHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/criaraluno.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def post(self):
         global DATA_COOKIE
@@ -947,7 +857,6 @@ class AlunoHandler(Handler):
                 periodo = self.request.get('periodo')
                 nome = self.request.get('nome')
                 aluno = Aluno(
-                    id_curso=int(data['code']),
                     matricula=matricula,
                     periodo=periodo,
                     nome=nome
@@ -956,9 +865,9 @@ class AlunoHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/alunos')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view_update(self, id):
         global DATA_COOKIE
@@ -972,9 +881,9 @@ class AlunoHandler(Handler):
                 }
                 self.render("Admin/editaraluno.html", page=page)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def put(self, id):
         global DATA_COOKIE
@@ -993,9 +902,9 @@ class AlunoHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/alunos')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
     def delete(self, id):
         global DATA_COOKIE
@@ -1007,9 +916,9 @@ class AlunoHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/alunos')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
 
 class TurmaHandler(Handler):
@@ -1021,9 +930,9 @@ class TurmaHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/listar_turmas.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def list(self):
         global DATA_COOKIE
@@ -1031,11 +940,11 @@ class TurmaHandler(Handler):
             cookie = self.request.cookies.get('__ck')
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
-                self.json_encode(Turma, data['code'])
+                self.json_encode(Turma)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view(self):
         global DATA_COOKIE
@@ -1045,9 +954,9 @@ class TurmaHandler(Handler):
             if data != '' and data.get('perm', '') == 2:
                 self.render("Admin/criarturma.html")
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def post(self):
         global DATA_COOKIE
@@ -1056,9 +965,14 @@ class TurmaHandler(Handler):
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
                 periodo = self.request.get('periodo')
+                cursos = self.request.get('curso')
                 alunos = self.request.get_all('aluno')
                 materias = self.request.get_all('materia')
                 contador = Contador.query(Contador.user_id == 1).get()
+                if cursos:
+                    cursos = int(cursos)
+                else:
+                    cursos = None
                 if alunos:
                     alunos = list(map(int, alunos))
                 if materias:
@@ -1066,7 +980,7 @@ class TurmaHandler(Handler):
                 if not contador:
                     contador = Contador()
                 turma = Turma(
-                    id_curso=int(data['code']),
+                    id_curso=cursos,
                     user_id=contador.id_turmas,
                     periodo = periodo,
                     alunos = alunos,
@@ -1078,9 +992,9 @@ class TurmaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/turmas')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def view_update(self, id):
         global DATA_COOKIE
@@ -1091,6 +1005,7 @@ class TurmaHandler(Handler):
                 turma = ndb.Key(Turma, int(id)).get()
                 alunos = Aluno.query()
                 materias = Materia.query()
+                cursos = Curso.query()
                 alunosatuais = []
                 alunosoutros = []
                 for aluno in alunos:
@@ -1107,8 +1022,20 @@ class TurmaHandler(Handler):
                     else:
                         matsoutros.append(materia)
                 
+                cursoatuais = []
+                cursooutros = []
+                for curso in cursos:
+                    if curso.key.id() == turma.id_curso:
+                        cursoatuais.append(curso)
+                    else:
+                        cursooutros.append(curso)
+                
                 page = {
                     "turma": turma,
+                    "cursos":{
+                        "atuais": cursoatuais,
+                        "outras": cursooutros
+                    },
                     "alunos":{
                         "atuais": alunosatuais,
                         "outras": alunosoutros
@@ -1120,9 +1047,9 @@ class TurmaHandler(Handler):
                 }
                 self.render("Admin/editarturma.html", page=page)
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
     
     def put(self, id):
         global DATA_COOKIE
@@ -1131,13 +1058,19 @@ class TurmaHandler(Handler):
             data = DATA_COOKIE.get(cookie, '')
             if data != '' and data.get('perm', '') == 2:
                 periodo = self.request.get('periodo')
+                cursos = self.request.get('curso')
                 alunos = self.request.get_all('aluno')
                 materias = self.request.get_all('materia')
                 if alunos:
                     alunos = list(map(int, alunos))
                 if materias:
                     materias = list(map(int, materias))
+                if cursos:
+                    cursos = int(cursos)
+                else:
+                    cursos = None
                 turma = ndb.Key(Turma, int(id)).get()
+                turma.id_curso = cursos
                 turma.periodo = periodo
                 turma.alunos = alunos
                 turma.materias = materias
@@ -1145,9 +1078,9 @@ class TurmaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/turmas')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
+            self.redirect('/login')
 
     def delete(self, id):
         global DATA_COOKIE
@@ -1159,20 +1092,64 @@ class TurmaHandler(Handler):
                 time.sleep(.1)
                 self.redirect('/admin/turmas')
             else:
-                self.redirect('/')
+                self.redirect('/login')
         except ValueError:
-            self.redirect('/')
-##################################################################################
+            self.redirect('/login')
 
-class TesteHandler(Handler):
-    def get(self):
-        self.render("Admin/listar_relatorio.html")
-        # res = Resultado.query().fetch()
-        # resu = []
-        # for i in res:
-        #     resu.append(i)
-        # self.write(resu)
 
+class RelatorioHandler(Handler):
+
+    def list_ents(self):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                forms = Formulario.query()
+                page ={
+                    "formularios": forms
+                }
+                self.render("Admin/listar_relatorio.html",page=page)
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+    
+    def list(self, id):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                query = Resultado.query(
+                    Resultado.id_formulario == int(id)
+                    )
+                enunciados = []
+                query_dict = []
+                for q in query:
+                    query_dict.append(
+                        dict(
+                            q.to_dict(),
+                            **dict(id=q.key.id())
+                        )
+                    )
+                    if q.enunciado not in enunciados:
+                        enunciados.append(q.enunciado)
+                enunciados.sort()
+                from operator import itemgetter
+                query_dict.sort(key=itemgetter('matricula_aluno', 'enunciado'))
+                self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
+                pa = {
+                    "resultados":json.dumps(query_dict),
+                    "enunciados":json.dumps(enunciados)
+                }
+                self.write(json.dumps(pa))
+            else:
+                self.redirect('/login')
+
+        except ValueError:
+            self.redirect('/login')
+    
 
 class LogoutHandler(Handler):
     
@@ -1183,90 +1160,464 @@ class LogoutHandler(Handler):
         if data:
             DATA_COOKIE.pop(cookie, None)
         self.redirect('/')
-        
+
+
+class CursoHandler(Handler):
+    def list_ents(self):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                self.render("Admin/listar_cursos.html")
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+            
+    
+    def list(self):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                self.json_encode(Curso)
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+    
+    def view(self):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                self.render("Admin/criarcurso.html")
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+    
+    def post(self):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                nome = self.request.get('nome')
+                descricao = self.request.get('descricao')
+                contador = Contador.query(Contador.user_id == 1).get()
+                if not contador:
+                    contador = Contador()
+                curso = Curso(
+                    cod=contador.id_cursos,
+                    nome=nome,
+                    descricao=descricao,
+                )
+                contador.id_cursos += 1
+                contador.put()
+                curso.put()
+                time.sleep(.1)
+                self.redirect('/admin/cursos')
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+    
+    def view_update(self, id):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                curso = ndb.Key(Curso, int(id)).get()
+                page = {
+                    "curso": curso
+                }
+                self.render("Admin/editarcurso.html", page=page)
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+    
+    def put(self, id):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                nome = self.request.get('nome')
+                descricao = self.request.get('descricao')
+                
+                curso = ndb.Key(Curso, int(id)).get()
+                curso.nome = nome
+                curso.descricao = descricao
+                curso.put()
+                time.sleep(.1)
+                self.redirect('/admin/cursos')
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+
+    def delete(self, id):
+        global DATA_COOKIE
+        try:
+            cookie = self.request.cookies.get('__ck')
+            data = DATA_COOKIE.get(cookie, '')
+            if data != '' and data.get('perm', '') == 2:
+                ndb.Key(Curso, int(id)).delete()
+                time.sleep(.1)
+                self.redirect('/admin/cursos')
+            else:
+                self.redirect('/login')
+        except ValueError:
+            self.redirect('/login')
+
+
+class NotFoundPageHandler(Handler):
+    def get(self):
+        self.redirect('/')
 
 app = webapp2.WSGIApplication([
     ('/logout', LogoutHandler),
-    ('/', Index),
-    ('/testessss', TesteHandler),
-    webapp2.Route(name='loginalunohandler.get', template=r'/curso/<id_curso:(\d+)>/loginaluno', methods='GET', handler=LoginAlunoHandler, handler_method='get'),
-    webapp2.Route(name='loginalunohandler.post', template=r'/curso/<id_curso:(\d+)>/loginaluno', methods='POST', handler=LoginAlunoHandler, handler_method='post'),
-    webapp2.Route(name='loginhandler.get', template=r'/curso/<id_curso:(\d+)>/login', methods='GET', handler=LoginHandler, handler_method='get'),
-    webapp2.Route(name='loginhandler.post', template=r'/curso/<id_curso:(\d+)>/login', methods='POST', handler=LoginHandler, handler_method='post'),
-    webapp2.Route(name='profhandler.get', template=r'/curso/<id_curso:(\d+)>/professor', methods='GET', handler=ProfessorHandler, handler_method='get'),
-    webapp2.Route(name='profhandler.post', template=r'/curso/<id_curso:(\d+)>/professor', methods='POST', handler=ProfessorHandler, handler_method='post'),
+    ('/', LoginAlunoHandler),
+    ('/login', LoginHandler),
+    ('/professor', ProfessorHandler),
     ('/alunos/formularios', AvaliacaoHandler),
-    webapp2.Route(name='avalicsdafaohandler.get', template=r'/alunos/formularios/<formulario:(\d+)>', methods='GET', handler=HandlerForm, handler_method='get'),
-    webapp2.Route(name='avalicaohandler.get', template=r'/alunos/pergunta/<id:(\d+)>', methods='GET', handler=AvaliacaoPerguntaHandler, handler_method='get'),
-    webapp2.Route(name='avalicaohandler.post', template=r'/alunos/pergunta/<id:(\d+)>', methods='POST', handler=AvaliacaoPerguntaHandler, handler_method='post'),
     ('/alunos/points', CodigoHandler),
     ('/validar', ValidarCodigo),
     ('/admin', AdministradorHandler),
-    webapp2.Route(name='formhandler.list_ents', template=r'/admin/formularios', methods='GET', handler=FormularioHandler, handler_method='list_ents'),
-    webapp2.Route(name='formhandler.list', template=r'/formularios', methods='GET', handler=FormularioHandler, handler_method='list'),
-    webapp2.Route(name='formhandler.view', template=r'/formulario/view_criar', methods=None, handler=FormularioHandler, handler_method='view'),
-    webapp2.Route(name='formhandler.post', template=r'/formulario/criar', methods=None, handler=FormularioHandler, handler_method='post'),
-    webapp2.Route(name='formhandler.view_update', template=r'/formulario/<id:(\d+)>/view_atualizar', methods=None, handler=FormularioHandler, handler_method='view_update'),
-    webapp2.Route(name='formhandler.put', template=r'/formulario/<id:(\d+)>/atualizar', methods=None, handler=FormularioHandler, handler_method='put'),
-    webapp2.Route(name='formhandler.delete', template=r'/formulario/<id:(\d+)>/apagar', methods=None, handler=FormularioHandler, handler_method='delete'),
-    webapp2.Route(name='perghandler.list_ents', template=r'/admin/perguntas', methods='GET', handler=PerguntaHandler, handler_method='list_ents'),
-    webapp2.Route(name='perghandler.list', template=r'/perguntas', methods='GET', handler=PerguntaHandler, handler_method='list'),
-    webapp2.Route(name='perghandler.view', template=r'/pergunta/view_criar', methods=None, handler=PerguntaHandler, handler_method='view'),
-    webapp2.Route(name='perghandler.post', template=r'/pergunta/criar', methods=None, handler=PerguntaHandler, handler_method='post'),
-    webapp2.Route(name='perghandler.view_update', template=r'/pergunta/<id:(\d+)>/view_atualizar', methods=None, handler=PerguntaHandler, handler_method='view_update'),
-    webapp2.Route(name='perghandler.put', template=r'/pergunta/<id:(\d+)>/atualizar', methods=None, handler=PerguntaHandler, handler_method='put'),
-    webapp2.Route(name='perghandler.delete', template=r'/pergunta/<id:(\d+)>/apagar', methods=None, handler=PerguntaHandler, handler_method='delete'),
-    webapp2.Route(name='mathandler.list_ents', template=r'/admin/materias', methods='GET', handler=MateriaHandler, handler_method='list_ents'),
-    webapp2.Route(name='mathandler.list', template=r'/materias', methods='GET', handler=MateriaHandler, handler_method='list'),
-    webapp2.Route(name='mathandler.view', template=r'/materia/view_criar', methods=None, handler=MateriaHandler, handler_method='view'),
-    webapp2.Route(name='mathandler.post', template=r'/materia/criar', methods=None, handler=MateriaHandler, handler_method='post'),
-    webapp2.Route(name='mathandler.view_update', template=r'/materia/<id:(\d+)>/view_atualizar', methods=None, handler=MateriaHandler, handler_method='view_update'),
-    webapp2.Route(name='mathandler.put', template=r'/materia/<id:(\d+)>/atualizar', methods=None, handler=MateriaHandler, handler_method='put'),
-    webapp2.Route(name='mathandler.delete', template=r'/materia/<id:(\d+)>/apagar', methods=None, handler=MateriaHandler, handler_method='delete'),
-    webapp2.Route(name='aluhandler.list_ents', template=r'/admin/alunos', methods='GET', handler=AlunoHandler, handler_method='list_ents'),
-    webapp2.Route(name='aluhandler.list', template=r'/alunos', methods='GET', handler=AlunoHandler, handler_method='list'),
-    webapp2.Route(name='aluhandler.view', template=r'/aluno/view_criar', methods=None, handler=AlunoHandler, handler_method='view'),
-    webapp2.Route(name='aluhandler.post', template=r'/aluno/criar', methods=None, handler=AlunoHandler, handler_method='post'),
-    webapp2.Route(name='aluhandler.view_update', template=r'/aluno/<id:(\d+)>/view_atualizar', methods=None, handler=AlunoHandler, handler_method='view_update'),
-    webapp2.Route(name='aluhandler.put', template=r'/aluno/<id:(\d+)>/atualizar', methods=None, handler=AlunoHandler, handler_method='put'),
-    webapp2.Route(name='aluhandler.delete', template=r'/aluno/<id:(\d+)>/apagar', methods=None, handler=AlunoHandler, handler_method='delete'),
-    webapp2.Route(name='turmahandler.list_ents', template=r'/admin/turmas', methods='GET', handler=TurmaHandler, handler_method='list_ents'),
-    webapp2.Route(name='turmahandler.list', template=r'/turmas', methods='GET', handler=TurmaHandler, handler_method='list'),
-    webapp2.Route(name='turmahandler.view', template=r'/turma/view_criar', methods=None, handler=TurmaHandler, handler_method='view'),
-    webapp2.Route(name='turmahandler.post', template=r'/turma/criar', methods=None, handler=TurmaHandler, handler_method='post'),
-    webapp2.Route(name='turmahandler.view_update', template=r'/turma/<id:(\d+)>/view_atualizar', methods=None, handler=TurmaHandler, handler_method='view_update'),
-    webapp2.Route(name='turmahandler.put', template=r'/turma/<id:(\d+)>/atualizar', methods=None, handler=TurmaHandler, handler_method='put'),
-    webapp2.Route(name='turmahandler.delete', template=r'/turma/<id:(\d+)>/apagar', methods=None, handler=TurmaHandler, handler_method='delete'),
+    Route(
+        name='avalicsdafaohandler.get',
+        template=r'/alunos/formularios/<formulario:(\d+)>',
+        methods='GET',
+        handler=HandlerForm,
+        handler_method='get'
+    ),
+    Route(
+        name='avalicaohandler.get',
+        template=r'/alunos/pergunta/<id:(\d+)>',
+        methods='GET',
+        handler=AvaliacaoPerguntaHandler,
+        handler_method='get'
+    ),
+    Route(
+        name='avalicaohandler.post',
+        template=r'/alunos/pergunta/<id:(\d+)>',
+        methods='POST',
+        handler=AvaliacaoPerguntaHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='formhandler.list_ents',
+        template=r'/admin/formularios',
+        methods='GET',
+        handler=FormularioHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='formhandler.list',
+        template=r'/formularios',
+        methods='GET',
+        handler=FormularioHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='formhandler.view',
+        template=r'/formulario/view_criar',
+        methods=None,
+        handler=FormularioHandler,
+        handler_method='view'
+    ),
+    Route(
+        name='formhandler.post',
+        template=r'/formulario/criar',
+        methods=None,
+        handler=FormularioHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='formhandler.view_update',
+        template=r'/formulario/<id:(\d+)>/view_atualizar',
+        methods=None,
+        handler=FormularioHandler,
+        handler_method='view_update'
+    ),
+    Route(
+        name='formhandler.put',
+        template=r'/formulario/<id:(\d+)>/atualizar',
+        methods=None,
+        handler=FormularioHandler,
+        handler_method='put'
+    ),
+    Route(
+        name='formhandler.delete',
+        template=r'/formulario/<id:(\d+)>/apagar',
+        methods=None,
+        handler=FormularioHandler,
+        handler_method='delete'
+    ),
+    Route(
+        name='perghandler.list_ents',
+        template=r'/admin/perguntas',
+        methods='GET',
+        handler=PerguntaHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='perghandler.list',
+        template=r'/perguntas',
+        methods='GET',
+        handler=PerguntaHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='perghandler.view',
+        template=r'/pergunta/view_criar',
+        methods=None,
+        handler=PerguntaHandler,
+        handler_method='view'
+    ),
+    Route(
+        name='perghandler.post',
+        template=r'/pergunta/criar',
+        methods=None,
+        handler=PerguntaHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='perghandler.view_update',
+        template=r'/pergunta/<id:(\d+)>/view_atualizar',
+        methods=None,
+        handler=PerguntaHandler,
+        handler_method='view_update'
+    ),
+    Route(
+        name='perghandler.put',
+        template=r'/pergunta/<id:(\d+)>/atualizar',
+        methods=None,
+        handler=PerguntaHandler,
+        handler_method='put'
+    ),
+    Route(
+        name='perghandler.delete',
+        template=r'/pergunta/<id:(\d+)>/apagar',
+        methods=None,
+        handler=PerguntaHandler,
+        handler_method='delete'
+    ),
+    Route(
+        name='mathandler.list_ents',
+        template=r'/admin/materias',
+        methods='GET',
+        handler=MateriaHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='mathandler.list',
+        template=r'/materias',
+        methods='GET',
+        handler=MateriaHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='mathandler.view',
+        template=r'/materia/view_criar',
+        methods=None,
+        handler=MateriaHandler,
+        handler_method='view'
+    ),
+    Route(
+        name='mathandler.post',
+        template=r'/materia/criar',
+        methods=None,
+        handler=MateriaHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='mathandler.view_update',
+        template=r'/materia/<id:(\d+)>/view_atualizar',
+        methods=None,
+        handler=MateriaHandler,
+        handler_method='view_update'
+    ),
+    Route(
+        name='mathandler.put',
+        template=r'/materia/<id:(\d+)>/atualizar',
+        methods=None,
+        handler=MateriaHandler,
+        handler_method='put'
+    ),
+    Route(
+        name='mathandler.delete',
+        template=r'/materia/<id:(\d+)>/apagar',
+        methods=None,
+        handler=MateriaHandler,
+        handler_method='delete'
+    ),
+    Route(
+        name='aluhandler.list_ents',
+        template=r'/admin/alunos',
+        methods='GET',
+        handler=AlunoHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='aluhandler.list',
+        template=r'/alunos',
+        methods='GET',
+        handler=AlunoHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='aluhandler.view',
+        template=r'/aluno/view_criar',
+        methods=None,
+        handler=AlunoHandler,
+        handler_method='view'
+    ),
+    Route(
+        name='aluhandler.post',
+        template=r'/aluno/criar',
+        methods=None,
+        handler=AlunoHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='aluhandler.view_update',
+        template=r'/aluno/<id:(\d+)>/view_atualizar',
+        methods=None,
+        handler=AlunoHandler,
+        handler_method='view_update'
+    ),
+    Route(
+        name='aluhandler.put',
+        template=r'/aluno/<id:(\d+)>/atualizar',
+        methods=None,
+        handler=AlunoHandler,
+        handler_method='put'
+    ),
+    Route(
+        name='aluhandler.delete',
+        template=r'/aluno/<id:(\d+)>/apagar',
+        methods=None,
+        handler=AlunoHandler,
+        handler_method='delete'
+    ),
+    Route(
+        name='turmahandler.list_ents',
+        template=r'/admin/turmas',
+        methods='GET',
+        handler=TurmaHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='turmahandler.list',
+        template=r'/turmas',
+        methods='GET',
+        handler=TurmaHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='turmahandler.view',
+        template=r'/turma/view_criar',
+        methods=None,
+        handler=TurmaHandler,
+        handler_method='view'
+    ),
+    Route(
+        name='turmahandler.post',
+        template=r'/turma/criar',
+        methods=None,
+        handler=TurmaHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='turmahandler.view_update',
+        template=r'/turma/<id:(\d+)>/view_atualizar',
+        methods=None,
+        handler=TurmaHandler,
+        handler_method='view_update'
+    ),
+    Route(
+        name='turmahandler.put',
+        template=r'/turma/<id:(\d+)>/atualizar',
+        methods=None,
+        handler=TurmaHandler,
+        handler_method='put'
+    ),
+    Route(
+        name='turmahandler.delete',
+        template=r'/turma/<id:(\d+)>/apagar',
+        methods=None,
+        handler=TurmaHandler,
+        handler_method='delete'
+    ),
+    Route(
+        name='resulthandler.list_ents',
+        template=r'/admin/resultados',
+        methods='GET',
+        handler=RelatorioHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='resulthandler.list',
+        template=r'/resultados/<id:(\d+)>',
+        methods='GET',
+        handler=RelatorioHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='cursohandler.list_ents',
+        template=r'/admin/cursos',
+        methods='GET',
+        handler=CursoHandler,
+        handler_method='list_ents'
+    ),
+    Route(
+        name='cursohandler.list',
+        template=r'/cursos',
+        methods='GET',
+        handler=CursoHandler,
+        handler_method='list'
+    ),
+    Route(
+        name='cursohandler.view',
+        template=r'/curso/view_criar',
+        methods=None,
+        handler=CursoHandler,
+        handler_method='view'
+    ),
+    Route(
+        name='cursohandler.post',
+        template=r'/curso/criar',
+        methods=None,
+        handler=CursoHandler,
+        handler_method='post'
+    ),
+    Route(
+        name='cursohandler.view_update',
+        template=r'/curso/<id:(\d+)>/view_atualizar',
+        methods=None,
+        handler=CursoHandler,
+        handler_method='view_update'
+    ),
+    Route(
+        name='cursohandler.put',
+        template=r'/curso/<id:(\d+)>/atualizar',
+        methods=None,
+        handler=CursoHandler,
+        handler_method='put'
+    ),
+    Route(
+        name='cursohandler.delete',
+        template=r'/curso/<id:(\d+)>/apagar',
+        methods=None,
+        handler=CursoHandler,
+        handler_method='delete'
+    ),
+    ('/.*', NotFoundPageHandler),
 ], debug=True)
-
-
-"""
-# app = webapp2.WSGIApplication([
-    # ('/tests', MainHandler),
-    # ('/tests', ListarFormularios),
-    ('/', LoginAlunoHandler),
-    # ('/formularios', FormulariosHandler),
-    ('/avaliar', AvaliacaoHandler),
-    ('/points', CodigoHandler),
-    ('/login', LoginHandler),
-    ('/professor', ProfessorHandler),
-    ('/validar', ValidarCodigo),
-    ('/admin', AdministradorHandler),
-    # ('/criarformulario', CriarFormulario),
-    # ('/criarmateria', CriarMateria),
-    # ('/criarpergunta', CriarPergunta),
-    # ('/criaraluno', CriarAluno),
-    # ('/listarformularios', ViewFormularios),
-    # ('/listarmaterias', ListarMaterias),
-    # ('/listaralunos', ListarAlunos),
-    # ('/listarperguntas', ListarPerguntas),
-    # ('/editarformulario', EditarFormulario),
-    # ('/editarmateria', EditarMateria),
-    # ('/editaraluno', EditarAluno),
-    # ('/editarpergunta', EditarPergunta),
-    # ('/apagarformulario', ApagarFormulario),
-    # ('/apagarpergunta', ApagarPergunta),
-    # ('/apagarmateria', ApagarMateria),
-    # ('/apagaraluno', ApagarAluno)
-# ], debug=True)
-"""
