@@ -19,12 +19,9 @@ class Aluno(ndb.Model):
 
     @classmethod
     def query_aluno(cls, matricula):
-        al = cls.query()
         als = None
-        for alu in al:
-            if alu.matricula == matricula:
-                als = alu
-                break
+        if matricula:
+            als = cls.query(cls.matricula == matricula).get()
         return als
 
 
@@ -63,9 +60,19 @@ class Materia(ndb.Model):
 
 
 class Admin(ndb.Model):
-    usuario = ndb.StringProperty(indexed=False)
-    senha = ndb.StringProperty(indexed=False)
+    usuario = ndb.StringProperty()
+    senha = ndb.StringProperty()
 
+    @classmethod
+    def query_admin(cls, usuario,senha):
+        als = None
+        if usuario and senha:
+            q = cls.query()
+            for qq in q:
+                if qq.usuario ==  usuario and qq.senha == senha:
+                    als = qq
+                    break
+        return als
 
 class Codigo(ndb.Model):
     id_aluno = ndb.IntegerProperty()
@@ -93,7 +100,7 @@ class Progresso(ndb.Model):
     user_id = ndb.IntegerProperty()
     matricula = ndb.StringProperty()
     formulario = ndb.IntegerProperty()
-    progresso = ndb.IntegerProperty()
+    progresso = ndb.IntegerProperty(default=0)
 
 
 class Curso(ndb.Model):
