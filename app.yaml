@@ -2,25 +2,18 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 
+builtins:
+- remote_api: on
+
 handlers:
 - url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
-
-- url: /.*/favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
 
 - url: /assets
   static_dir: assets
 
-- url: /.*/assets
-  static_dir: assets
-
 - url: /images
-  static_dir: images
-
-- url: /.*/images
   static_dir: images
 
 - url: .*
