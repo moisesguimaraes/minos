@@ -1,42 +1,46 @@
 # -*- coding: utf-8 -*-
 
+# imports do python
 import json
 import time
 import urllib
 from os.path import dirname, join
 
+#imports do jinja2
 from jinja2 import Environment, FileSystemLoader
+
+# imports do appengine
 from webapp2 import RequestHandler, Route, WSGIApplication, cached_property
 from webapp2_extras import sessions
 
 from google.appengine.ext import ndb
 from models import *
 
+# Carregando o Jinja2
 TEMPLATE_DIR = join(dirname(__file__), "templates")
-# DATA_DIR = join(dirname(__file__), "data")
-# GESTAO_COMERCIAL_DATA = json.loads(open(join(
-#     DATA_DIR, "gestao_comercial.json")).read())
-
 JINJA_ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=True)
-# GESTAO_COMERCIAL_HTML = JINJA_ENV.get_template(
-#     "index.html").render(curso=GESTAO_COMERCIAL_DATA)
 
-
-DATA_COOKIE = dict()
 
 class Handler(RequestHandler):
+    """
+    Classe auxiliar para manipulação requisições
+    """
 
     def write(self, *a, **kw):
+        """Retorna a mensagem ou template renderizado"""
         self.response.out.write(*a, **kw)
 
     def render_str(self, *template, **kw):
+        """Pega o template e retorna renderizado"""
         tmp = JINJA_ENV.get_template(*template)
         return tmp.render(**kw)
 
     def render(self, *template, **kw):
+        """Chama o metodo write e passa os parametros pra renderizar o template"""
         self.write(self.render_str(*template, **kw))
 
     def json_encode(self, objs):
+        """Retorna um a lista de entidades em json"""
         self.response.headers['Content-Type'] = 'application/json; charset=utf-8'
         query_dict = [
             dict(obj.to_dict(),
@@ -77,92 +81,130 @@ class Handler(RequestHandler):
 
 ######################## Aluno ########################
 class LoginAlunoHandler(Handler):
+    """
+    Classe responsavel pelo login dos alunos
+    """
 
     def get(self):
+        """Renderiza o template de login dos alunos"""
         self.render("Aluno/loginaluno.html")
 
     def post(self):
+        """Confere se a matricula existe e seta a session para a requisição"""
         matricula = self.request.get('mat', '')
-        aluno = Aluno.query_aluno(matricula)
+        aluno = Aluno.query_aluno(matricula) # Procura o aluno no banco de dados pela matricula
         if aluno:
-            self.session['aluno'] = aluno.key.id()
+            self.session['aluno'] = aluno.key.id() # Seta a session
             self.redirect('/alunos/formularios')
         else:
             self.redirect('/')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='loginaluno.get',
+                template=r'/',
+                methods='GET',
+                handler=LoginAlunoHandler,
+                handler_method='get'
+            ),
+            Route(
+                name='loginaluno.post',
+                template=r'/',
+                methods='POST',
+                handler=LoginAlunoHandler,
+                handler_method='post'
+            ),
+        ]
 
 
 class AvaliacaoHandler(Handler):
+    """
+    Classe responsavel por Listar os Formularios de cada aluno
+    """
     
     def get(self):
+        """Renderiza o template com os formularios dos alunos"""
         id_aluno = self.session.get('aluno', '')
         if id_aluno:
-            turma = Turma.query(
+            turma = Turma.query( # Busca a turma do aluno 
                 Turma.alunos.IN(
                     [int(id_aluno)]
                 )
             ).get()
             page = []
             if turma:
-                progs = Progresso.query(
+                progs = Progresso.query( # Lista os progressos do aluno
                     Progresso.user_id == int(id_aluno)
                 )
-                formularios = Formulario.query(
+                formularios = Formulario.query( # Lista os formularios da turma do aluno
                     Formulario.turmas.IN(
                         [turma.key.id()]
                     )
                 )
-                for form in formularios:
+                for form in formularios: # Percorre a lista de formluarios
                     prog = progs.filter(
-                            Progresso.formulario == form.key.id()
+                        # Busca o progresso do aluno por formulario
+                        Progresso.formulario == form.key.id() 
                     ).get()
-                    if prog:
+                    if prog and not (prog.progresso >= len(form.perguntas)):
+                        # Pega o id da proxima pergunta
+                        pergunta = form.perguntas[prog.progresso]
+                        # Calcula o progresso no formulario
+                        prog = int((float(prog.progresso)/len(form.perguntas))*100.0)
+                    elif prog:
+                        pergunta = -1
                         prog = int((float(prog.progresso)/len(form.perguntas))*100.0)
                     else:
+                        pergunta = form.perguntas[0]
                         prog = 0
-                    page.append((form, prog))
+                    page.append((form, prog, pergunta))
             self.render('Aluno/formularios.html', page=page)
         else:
             self.redirect('/')
-
-
-class HandlerForm(Handler):
     
-    def get(self, formulario):
-        id_aluno = self.session.get('aluno', '')
-        if id_aluno and formulario.isdigit():
-            form = ndb.Key(Formulario, int(formulario)).get()
-            if form:
-                prog = Progresso.query(ndb.AND(
-                    Progresso.user_id == int(id_aluno),
-                    Progresso.formulario == form.key.id()
-                )).get()
-                pergunta = None
-                if (prog) and (prog.progresso >= len(form.perguntas)):
-                    self.redirect("/alunos/formularios")
-                else:
-                    pergunta = form.perguntas[ 0 if not prog else prog.progresso ]
-                self.redirect('/alunos/pergunta/%d/%d' % (int(formulario), int(pergunta)))
-            else:
-                self.redirect('/')
-        else:
-            self.redirect('/')
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='avaliacaohandler.get',
+                template=r'/alunos/formularios',
+                methods='GET',
+                handler=AvaliacaoHandler,
+                handler_method='get'
+            ),
+            Route(
+                name='avaliacaohandler.post',
+                template=r'/alunos/formularios',
+                methods='POST',
+                handler=AvaliacaoHandler,
+                handler_method='post'
+            ),
+        ]
 
 
 class AvaliacaoPerguntaHandler(Handler):
+    """
+    Classe responsavel pelas perguntas dos formularios para os alunos
+    """
     
     def get(self, formulario, id):
+        """Renderiza a pergunta para o aluno"""
         id_aluno = self.session.get('aluno', '')
         if id_aluno and formulario.isdigit() and id.isdigit():
             turma = Turma.query(
-                Turma.alunos.IN(
+                Turma.alunos.IN( # Busca a turma do aluno
                     [int(id_aluno)]
                 )
             ).get()
-            form = ndb.Key(Formulario, int(formulario)).get()
-            pergunta = ndb.Key(Pergunta, int(id)).get()
+            form = ndb.Key(Formulario, int(formulario)).get() #Pega o formulario
+            pergunta = ndb.Key(Pergunta, int(id)).get() # Pega a pergunta
             materias = []
             if pergunta.avaliado == 1:
-                materias = ndb.get_multi(
+                materias = ndb.get_multi( # Lista as materias
                     [ndb.Key(Materia, int(k)) for k in turma.materias]
                 )
             page = {
@@ -175,26 +217,27 @@ class AvaliacaoPerguntaHandler(Handler):
             self.redirect('/')
     
     def post(self, formulario, id):
+        """Salva as respostas da pergunta no banco de dados"""
         id_aluno = self.session.get('aluno', '')
         if id_aluno and formulario.isdigit() and id.isdigit():
             user = ndb.Key(Aluno, int(id_aluno)).get()
             turma = Turma.query(
-                Turma.alunos.IN(
+                Turma.alunos.IN(  # Busca a turma do aluno
                     [int(id_aluno)]
                 )
             ).get()
-            formular = ndb.Key(Formulario, int(formulario)).get()
-            pergunta = ndb.Key(Pergunta, int(id)).get()
-            curso = ndb.Key(Curso, int(turma.id_curso)).get()
+            formular = ndb.Key(Formulario, int(formulario)).get() #Pega o formulario
+            pergunta = ndb.Key(Pergunta, int(id)).get() # Pega a pergunta
+            curso = ndb.Key(Curso, int(turma.id_curso)).get() # Pega o curso
             res = []
             if pergunta.avaliado == 1:
-                materias = ndb.get_multi(
+                materias = ndb.get_multi( # Lista as materias
                     [ndb.Key(Materia, int(k)) for k in turma.materias]
                 )
                 if materias:
                     for materia in materias:
                         res.append(
-                            Resultado(
+                            Resultado( # Criar os resultados por materia
                                 id_curso=turma.id_curso,
                                 id_aluno=user.key.id(),
                                 matricula_aluno=user.matricula,
@@ -210,7 +253,7 @@ class AvaliacaoPerguntaHandler(Handler):
                         )
             else:
                 res.append(
-                    Resultado(
+                    Resultado( # Criar os resultados por outros
                         id_curso=turma.id_curso,
                         id_aluno=user.key.id(),
                         matricula_aluno=user.matricula,
@@ -224,21 +267,21 @@ class AvaliacaoPerguntaHandler(Handler):
                         nome_curso=curso.nome
                     )
                 )
-            prog = Progresso.query(ndb.AND(
+            prog = Progresso.query(ndb.AND( # Pega o progresso 
                     Progresso.user_id == user.key.id(),
                     Progresso.formulario == formular.key.id()
                 )).get()
             if prog:
                 prog.progresso += 1
             else:
-                prog = Progresso(
+                prog = Progresso( # Cria o progresso caso ele não exista 
                     user_id=user.key.id(),
                     matricula=user.matricula,
                     formulario=formular.key.id(),
                     progresso=1
                 )
-            ndb.put_multi(res)
-            prog.put()
+            ndb.put_multi(res) # Adiciona todas as respostas ao Banco
+            prog.put() # Adiciona o progresso ao Banco
             time.sleep(.1)
             if len(formular.perguntas) > prog.progresso:
                 self.redirect('/alunos/pergunta/%d/%d' % (
@@ -249,16 +292,40 @@ class AvaliacaoPerguntaHandler(Handler):
                 self.redirect('/alunos/points/%d' % (int(formulario)))
         else:
             self.redirect('/')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='avalicaoperguntahandler.get',
+                template=r'/alunos/pergunta/<formulario:(\d+)>/<id:(\d+)>',
+                methods='GET',
+                handler=AvaliacaoPerguntaHandler,
+                handler_method='get'
+            ),
+            Route(
+                name='avalicaoperguntahandler.post',
+                template=r'/alunos/pergunta/<formulario:(\d+)>/<id:(\d+)>',
+                methods='POST',
+                handler=AvaliacaoPerguntaHandler,
+                handler_method='post'
+            ),
+        ]
 
 
 class CodigoHandler(Handler):
+    """
+    Classe responsavel por gerar o codigo de recompensa do aluno
+    """
 
     def get(self, formulario):
+        """Renderiza o codigo para o aluno"""
         id_aluno = self.session.get('aluno', '')
         if id_aluno and formulario.isdigit():
-            aluno = ndb.Key(Aluno, int(id_aluno)).get()
-            form = ndb.Key(Formulario, int(formulario)).get()
-            progresso = Progresso.query(
+            aluno = ndb.Key(Aluno, int(id_aluno)).get() # Pega o aluno
+            form = ndb.Key(Formulario, int(formulario)).get() # Pega o formulario
+            progresso = Progresso.query( # Pega o progresso
                 ndb.AND(
                     Progresso.formulario == form.key.id(),
                     Progresso.user_id == aluno.key.id()
@@ -266,33 +333,51 @@ class CodigoHandler(Handler):
             ).fetch(keys_only=True)
             progresso = progresso.pop(0).get()
             if progresso.progresso == len(form.perguntas):
-                cont = Contador.query(Contador.user_id == 1).get()
-                cod = Codigo(
+                cont = Contador.query(Contador.user_id == 1).get() # Pega o contador
+                cod = Codigo( # Cria o codigo do aluno
                     id_aluno=aluno.key.id(),
                     nomeAluno=aluno.nome,
                     periodo=aluno.periodo,
                     id_formulario=form.key.id(),
                     codigo=str("COD" + str(cont.maior_cod))
                 )
-                cont.maior_cod += 1
+                cont.maior_cod += 1 # incrementa o contador de codigos
                 codigo = cod.codigo[:]
-                cod.put()
-                cont.put()
+                cod.put() # Salva o codigo
+                cont.put() # Salva o contador
                 time.sleep(.1)
                 self.render("Aluno/gratificacao.html", codigo=codigo)
             else:
                 self.redirect('/alunos/formularios')
         else:
             self.redirect('/')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='points.get',
+                template=r'/alunos/points/<formulario:(\d+)>',
+                methods='GET',
+                handler=CodigoHandler,
+                handler_method='get'
+            ),
+        ]
 
 
 ######################## Professor ########################
 class ProfessorHandler(Handler):
+    """
+    Classe responsavel por pegar o codigo do aluno
+    """
     
     def get(self):
+        """Renderiza o template de professor"""
         self.render("Prof/professor.html")
     
-    def post(self): 
+    def post(self):
+        """Confere se o codigo existe"""
         codigo = self.request.get('codigo', '')
         if codigo:
             codigos = Codigo.query(
@@ -306,84 +391,149 @@ class ProfessorHandler(Handler):
                 self.redirect('/professor')
         else:
             self.redirect('/professor')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='professor.get',
+                template=r'/professor',
+                methods='GET',
+                handler=ProfessorHandler,
+                handler_method='get'
+            ),
+            Route(
+                name='professor.post',
+                template=r'/professor',
+                methods='POST',
+                handler=ProfessorHandler,
+                handler_method='post'
+            ),
+        ]
 
 
 class ValidarCodigo(Handler):
+    """
+    Classe responsavel por validar e deletar o cidogo do aluno
+    """
 
     def get(self):
+        """Renderiza as informações do aluno beneficiado pelo codigo"""
         cod_prof = self.session.get('professor', '')
         if cod_prof:
-            codigo = ndb.Key(Codigo, int(cod_prof)).get()
+            codigo = ndb.Key(Codigo, int(cod_prof)).get() # Pega o codigo do banco
             self.render("Prof/validar.html", codigo=codigo)
         else:
             self.redirect('/professor')
 
     def post(self):
+        """Apaga o codigo do aluno"""
         cod_prof = self.session.get('professor', '')
         if cod_prof:
-            codigo = ndb.Key(Codigo, int(cod_prof)).get()
-            codigo.key.delete()
+            codigo = ndb.Key(Codigo, int(cod_prof)).get() # Pega o codigo do banco
+            codigo.key.delete() # Apaga a chave 
             time.sleep(.1)
             self.session.pop("professor")
             self.redirect('/professor')
         else:
             self.redirect('/professor')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='validarcodigo.get',
+                template=r'/validar',
+                methods='GET',
+                handler=ValidarCodigo,
+                handler_method='get'
+            ),
+            Route(
+                name='validarcodigo.post',
+                template=r'/validar',
+                methods='POST',
+                handler=ValidarCodigo,
+                handler_method='post'
+            ),
+        ]
 
 
 ######################## Adminitrador ########################
 class LoginHandler(Handler):
+    """
+    Classe responsavel pelo login do Administrador
+    """
     
     def get(self):
+        """Renderiza o login do administrador"""
         self.render("Admin/loginadmin.html")
 
     def post(self):
+        """Valida o usuario e senha"""
         usuario = self.request.get('usuario','')
         senha = self.request.get('senha','')
-        admin = Admin.query_admin(usuario,senha)
+        admin = Admin.query_admin(usuario,senha) # Busca no banco pelo admin
         if admin:
             self.session['admin'] = admin.key.id()
-            self.redirect('/admin')
+            self.redirect('/admin/cursos')
         else:
             self.redirect('/login')
-
-
-class AdministradorHandler(Handler):
-
-    def get(self):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            self.render("Admin/administrador.html")
-        else:
-            self.redirect('/login')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='loginadmin.get',
+                template=r'/login',
+                methods='GET',
+                handler=LoginHandler,
+                handler_method='get'
+            ),
+            Route(
+                name='loginadmin.post',
+                template=r'/login',
+                methods='POST',
+                handler=LoginHandler,
+                handler_method='post'
+            ),
+        ]
 
 
 class FormularioHandler(Handler):
+    """
+    Classe responsável pelos Formularios
+    """
+
     def list_ents(self):
+        """Renderiza a lista de Formularios"""
         id_admin = self.session.get('admin','')
         if id_admin:
             self.render("Admin/listar_formularios.html")
         else:
             self.redirect('/login')
 
-            
-    
     def list(self):
+        """Lista os formularios e responde com um json"""
         id_admin = self.session.get('admin','')
         if id_admin:
+            # Lista todos os formularios e retorna como json
             self.json_encode(Formulario.query())
         else:
             self.redirect('/login')
 
-    
     def view(self):
+        """Renderiza a View  para criar um Formulario"""
         id_admin = self.session.get('admin','')
         if id_admin:
             self.render("Admin/criarformulario.html")
         else:
             self.redirect('/login')
 
-    
     def post(self):
+        """Cria o formlario e salva no banco"""
         id_admin = self.session.get('admin','')
         if id_admin:
             titulo = self.request.get('titulo')
@@ -397,7 +547,7 @@ class FormularioHandler(Handler):
             contador = Contador.query(Contador.user_id == 1).get()
             if not contador:
                 contador = Contador()
-            form = Formulario(
+            form = Formulario( # Cria o formulario
                 user_id=contador.id_formularios,
                 titulo=titulo,
                 descricao=descricao,
@@ -412,8 +562,8 @@ class FormularioHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def view_update(self, id):
+        """Renderiza a View para atualizar o formulario"""
         id_admin = self.session.get('admin','')
         if id_admin:
             form = ndb.Key(Formulario, int(id)).get()
@@ -449,8 +599,8 @@ class FormularioHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def put(self, id):
+        """Salva as atualizações do formulario"""
         id_admin = self.session.get('admin','')
         if id_admin:
             titulo = self.request.get('titulo')
@@ -472,8 +622,8 @@ class FormularioHandler(Handler):
         else:
             self.redirect('/login')
 
-
     def delete(self, id):
+        """Deleta o formulario"""
         id_admin = self.session.get('admin','')
         if id_admin:
             ndb.Key(Formulario, int(id)).delete()
@@ -482,33 +632,93 @@ class FormularioHandler(Handler):
         else:
             self.redirect('/login')
 
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='formhandler.list_ents',
+                template=r'/admin/formularios',
+                methods='GET',
+                handler=FormularioHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='formhandler.list',
+                template=r'/formularios',
+                methods='GET',
+                handler=FormularioHandler,
+                handler_method='list'
+            ),
+            Route(
+                name='formhandler.view',
+                template=r'/formulario/view_criar',
+                methods=None,
+                handler=FormularioHandler,
+                handler_method='view'
+            ),
+            Route(
+                name='formhandler.post',
+                template=r'/formulario/criar',
+                methods=None,
+                handler=FormularioHandler,
+                handler_method='post'
+            ),
+            Route(
+                name='formhandler.view_update',
+                template=r'/formulario/<id:(\d+)>/view_atualizar',
+                methods=None,
+                handler=FormularioHandler,
+                handler_method='view_update'
+            ),
+            Route(
+                name='formhandler.put',
+                template=r'/formulario/<id:(\d+)>/atualizar',
+                methods=None,
+                handler=FormularioHandler,
+                handler_method='put'
+            ),
+            Route(
+                name='formhandler.delete',
+                template=r'/formulario/<id:(\d+)>/apagar',
+                methods=None,
+                handler=FormularioHandler,
+                handler_method='delete'
+            ),
+        ]
+
 
 class PerguntaHandler(Handler):
+    """
+    Classe responsável pelas Perguntas
+    """
+
     def list_ents(self):
+        """Renderiza a lista de Perguntas"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/listar_perguntas.html")
         else:
             self.redirect('/login')
 
-    
     def list(self):
+        """Lista as Perguntas e responde com um json"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.json_encode(Pergunta.query())
         else:
             self.redirect('/login')
 
-    
     def view(self):
+        """Renderiza a View  para criar uma Pergunta"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/criarpergunta.html")
         else:
             self.redirect('/login')
 
-    
     def post(self):
+        """Cria a pergunta e salva no banco"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             enunciado = self.request.get('enunciado')
@@ -533,8 +743,8 @@ class PerguntaHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def view_update(self, id):
+        """Renderiza a View para atualizar a pergunta"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             perg = ndb.Key(Pergunta, int(id)).get()
@@ -545,8 +755,8 @@ class PerguntaHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def put(self, id):
+        """Salva as atualizações da pergunta"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             enunciado = self.request.get('enunciado')
@@ -564,8 +774,8 @@ class PerguntaHandler(Handler):
         else:
             self.redirect('/login')
 
-
     def delete(self, id):
+        """Deleta a pergunta"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             ndb.Key(Pergunta, int(id)).delete()
@@ -573,34 +783,94 @@ class PerguntaHandler(Handler):
             self.redirect('/admin/perguntas')
         else:
             self.redirect('/login')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='perghandler.list_ents',
+                template=r'/admin/perguntas',
+                methods='GET',
+                handler=PerguntaHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='perghandler.list',
+                template=r'/perguntas',
+                methods='GET',
+                handler=PerguntaHandler,
+                handler_method='list'
+            ),
+            Route(
+                name='perghandler.view',
+                template=r'/pergunta/view_criar',
+                methods=None,
+                handler=PerguntaHandler,
+                handler_method='view'
+            ),
+            Route(
+                name='perghandler.post',
+                template=r'/pergunta/criar',
+                methods=None,
+                handler=PerguntaHandler,
+                handler_method='post'
+            ),
+            Route(
+                name='perghandler.view_update',
+                template=r'/pergunta/<id:(\d+)>/view_atualizar',
+                methods=None,
+                handler=PerguntaHandler,
+                handler_method='view_update'
+            ),
+            Route(
+                name='perghandler.put',
+                template=r'/pergunta/<id:(\d+)>/atualizar',
+                methods=None,
+                handler=PerguntaHandler,
+                handler_method='put'
+            ),
+            Route(
+                name='perghandler.delete',
+                template=r'/pergunta/<id:(\d+)>/apagar',
+                methods=None,
+                handler=PerguntaHandler,
+                handler_method='delete'
+            ),
+        ]
 
 
 class MateriaHandler(Handler):
+    """
+    Classe responsável pelas Materias
+    """
+
     def list_ents(self):
+        """Renderiza a lista de Materias"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/listar_materias.html")
         else:
             self.redirect('/login')
 
-    
     def list(self):
+        """Lista as Materias e responde com um json"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.json_encode(Materia.query())
         else:
             self.redirect('/login')
 
-    
     def view(self):
+        """Renderiza a View  para criar uma Materia"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/criarmateria.html")
         else:
             self.redirect('/login')
 
-    
     def post(self):
+        """Cria a materia e salva no banco"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             titulo = self.request.get('titulo')
@@ -623,8 +893,8 @@ class MateriaHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def view_update(self, id):
+        """Renderiza a View para atualizar a materia"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             mat = ndb.Key(Materia, int(id)).get()
@@ -635,8 +905,8 @@ class MateriaHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def put(self, id):
+        """Salva as atualizações da materia"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             titulo = self.request.get('titulo')
@@ -652,8 +922,8 @@ class MateriaHandler(Handler):
         else:
             self.redirect('/login')
 
-
     def delete(self, id):
+        """Deleta a materia"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             ndb.Key(Materia, int(id)).delete()
@@ -662,33 +932,93 @@ class MateriaHandler(Handler):
         else:
             self.redirect('/login')
 
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='mathandler.list_ents',
+                template=r'/admin/materias',
+                methods='GET',
+                handler=MateriaHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='mathandler.list',
+                template=r'/materias',
+                methods='GET',
+                handler=MateriaHandler,
+                handler_method='list'
+            ),
+            Route(
+                name='mathandler.view',
+                template=r'/materia/view_criar',
+                methods=None,
+                handler=MateriaHandler,
+                handler_method='view'
+            ),
+            Route(
+                name='mathandler.post',
+                template=r'/materia/criar',
+                methods=None,
+                handler=MateriaHandler,
+                handler_method='post'
+            ),
+            Route(
+                name='mathandler.view_update',
+                template=r'/materia/<id:(\d+)>/view_atualizar',
+                methods=None,
+                handler=MateriaHandler,
+                handler_method='view_update'
+            ),
+            Route(
+                name='mathandler.put',
+                template=r'/materia/<id:(\d+)>/atualizar',
+                methods=None,
+                handler=MateriaHandler,
+                handler_method='put'
+            ),
+            Route(
+                name='mathandler.delete',
+                template=r'/materia/<id:(\d+)>/apagar',
+                methods=None,
+                handler=MateriaHandler,
+                handler_method='delete'
+            ),
+        ]
+
 
 class AlunoHandler(Handler):
+    """
+    Classe responsável pelos Alunos
+    """
+
     def list_ents(self):
+        """Renderiza a lista de Alunos"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/listar_alunos.html")
         else:
             self.redirect('/login')
 
-    
     def list(self):
+        """Lista os Alunos e responde com um json"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.json_encode(Aluno.query())
         else:
             self.redirect('/login')
 
-    
     def view(self):
+        """Renderiza a View  para criar um Aluno"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/criaraluno.html")
         else:
             self.redirect('/login')
 
-    
     def post(self):
+        """Cria o aluno e salva no banco"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             matricula = self.request.get('matricula')
@@ -705,8 +1035,8 @@ class AlunoHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def view_update(self, id):
+        """Renderiza a View para atualizar o aluno"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             aluno = ndb.Key(Aluno, int(id)).get()
@@ -717,8 +1047,8 @@ class AlunoHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def put(self, id):
+        """Salva as atualizações do aluno"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             matricula = self.request.get('matricula')
@@ -734,8 +1064,8 @@ class AlunoHandler(Handler):
         else:
             self.redirect('/login')
 
-
     def delete(self, id):
+        """Deleta o aluno"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             ndb.Key(Aluno, int(id)).delete()
@@ -744,33 +1074,93 @@ class AlunoHandler(Handler):
         else:
             self.redirect('/login')
 
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='aluhandler.list_ents',
+                template=r'/admin/alunos',
+                methods='GET',
+                handler=AlunoHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='aluhandler.list',
+                template=r'/alunos',
+                methods='GET',
+                handler=AlunoHandler,
+                handler_method='list'
+            ),
+            Route(
+                name='aluhandler.view',
+                template=r'/aluno/view_criar',
+                methods=None,
+                handler=AlunoHandler,
+                handler_method='view'
+            ),
+            Route(
+                name='aluhandler.post',
+                template=r'/aluno/criar',
+                methods=None,
+                handler=AlunoHandler,
+                handler_method='post'
+            ),
+            Route(
+                name='aluhandler.view_update',
+                template=r'/aluno/<id:(\d+)>/view_atualizar',
+                methods=None,
+                handler=AlunoHandler,
+                handler_method='view_update'
+            ),
+            Route(
+                name='aluhandler.put',
+                template=r'/aluno/<id:(\d+)>/atualizar',
+                methods=None,
+                handler=AlunoHandler,
+                handler_method='put'
+            ),
+            Route(
+                name='aluhandler.delete',
+                template=r'/aluno/<id:(\d+)>/apagar',
+                methods=None,
+                handler=AlunoHandler,
+                handler_method='delete'
+            ),
+        ]
+
 
 class TurmaHandler(Handler):
+    """
+    Classe responsável pelas Turmas
+    """
+
     def list_ents(self):
+        """Renderiza a lista de Turmas"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/listar_turmas.html")
         else:
             self.redirect('/login')
 
-    
     def list(self):
+        """Lista as Turmas e responde com um json"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.json_encode(Turma.query())
         else:
             self.redirect('/login')
 
-    
     def view(self):
+        """Renderiza a View  para criar uma Turma"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             self.render("Admin/criarturma.html")
         else:
             self.redirect('/login')
 
-    
     def post(self):
+        """Cria a turma e salva no banco"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             periodo = self.request.get('periodo')
@@ -803,8 +1193,8 @@ class TurmaHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def view_update(self, id):
+        """Renderiza a View para atualizar a turma"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             turma = ndb.Key(Turma, int(id)).get()
@@ -854,8 +1244,8 @@ class TurmaHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def put(self, id):
+        """Salva as atualizações da turma"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             periodo = self.request.get('periodo')
@@ -881,8 +1271,8 @@ class TurmaHandler(Handler):
         else:
             self.redirect('/login')
 
-
     def delete(self, id):
+        """Deleta a turma"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             ndb.Key(Turma, int(id)).delete()
@@ -891,10 +1281,213 @@ class TurmaHandler(Handler):
         else:
             self.redirect('/login')
 
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='turmahandler.list_ents',
+                template=r'/admin/turmas',
+                methods='GET',
+                handler=TurmaHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='turmahandler.list',
+                template=r'/turmas',
+                methods='GET',
+                handler=TurmaHandler,
+                handler_method='list'
+            ),
+            Route(
+                name='turmahandler.view',
+                template=r'/turma/view_criar',
+                methods=None,
+                handler=TurmaHandler,
+                handler_method='view'
+            ),
+            Route(
+                name='turmahandler.post',
+                template=r'/turma/criar',
+                methods=None,
+                handler=TurmaHandler,
+                handler_method='post'
+            ),
+            Route(
+                name='turmahandler.view_update',
+                template=r'/turma/<id:(\d+)>/view_atualizar',
+                methods=None,
+                handler=TurmaHandler,
+                handler_method='view_update'
+            ),
+            Route(
+                name='turmahandler.put',
+                template=r'/turma/<id:(\d+)>/atualizar',
+                methods=None,
+                handler=TurmaHandler,
+                handler_method='put'
+            ),
+            Route(
+                name='turmahandler.delete',
+                template=r'/turma/<id:(\d+)>/apagar',
+                methods=None,
+                handler=TurmaHandler,
+                handler_method='delete'
+            ),
+        ]
 
-class RelatorioHandler(Handler):
+
+class CursoHandler(Handler):
+    """
+    Classe responsável pelos Cursos
+    """
 
     def list_ents(self):
+        """Renderiza a lista de Cursos"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            self.render("Admin/listar_cursos.html")
+        else:
+            self.redirect('/login')
+
+    def list(self):
+        """Lista os cursos e responde com um json"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            self.json_encode(Curso.query())
+        else:
+            self.redirect('/login')
+    
+    def view(self):
+        """Renderiza a View  para criar um Curso"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            self.render("Admin/criarcurso.html")
+        else:
+            self.redirect('/login')
+    
+    def post(self):
+        """Cria o curso e salva no banco"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            nome = self.request.get('nome')
+            descricao = self.request.get('descricao')
+            contador = Contador.query(Contador.user_id == 1).get()
+            if not contador:
+                contador = Contador()
+            curso = Curso(
+                cod=contador.id_cursos,
+                nome=nome,
+                descricao=descricao,
+            )
+            contador.id_cursos += 1
+            contador.put()
+            curso.put()
+            time.sleep(.1)
+            self.redirect('/admin/cursos')
+        else:
+            self.redirect('/login')
+
+    def view_update(self, id):
+        """Renderiza a View para atualizar o curso"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            curso = ndb.Key(Curso, int(id)).get()
+            page = {
+                "curso": curso
+            }
+            self.render("Admin/editarcurso.html", page=page)
+        else:
+            self.redirect('/login')
+
+    def put(self, id):
+        """Salva as atualizações do curso"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            nome = self.request.get('nome')
+            descricao = self.request.get('descricao')
+            curso = ndb.Key(Curso, int(id)).get()
+            curso.nome = nome
+            curso.descricao = descricao
+            curso.put()
+            time.sleep(.1)
+            self.redirect('/admin/cursos')
+        else:
+            self.redirect('/login')
+
+    def delete(self, id):
+        """Deleta o curso"""
+        id_admin = self.session.get('admin', '')
+        if id_admin:
+            ndb.Key(Curso, int(id)).delete()
+            time.sleep(.1)
+            self.redirect('/admin/cursos')
+        else:
+            self.redirect('/login')
+
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='cursohandler.list_ents',
+                template=r'/admin/cursos',
+                methods='GET',
+                handler=CursoHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='cursohandler.list',
+                template=r'/cursos',
+                methods='GET',
+                handler=CursoHandler,
+                handler_method='list'
+            ),
+            Route(
+                name='cursohandler.view',
+                template=r'/curso/view_criar',
+                methods=None,
+                handler=CursoHandler,
+                handler_method='view'
+            ),
+            Route(
+                name='cursohandler.post',
+                template=r'/curso/criar',
+                methods=None,
+                handler=CursoHandler,
+                handler_method='post'
+            ),
+            Route(
+                name='cursohandler.view_update',
+                template=r'/curso/<id:(\d+)>/view_atualizar',
+                methods=None,
+                handler=CursoHandler,
+                handler_method='view_update'
+            ),
+            Route(
+                name='cursohandler.put',
+                template=r'/curso/<id:(\d+)>/atualizar',
+                methods=None,
+                handler=CursoHandler,
+                handler_method='put'
+            ),
+            Route(
+                name='cursohandler.delete',
+                template=r'/curso/<id:(\d+)>/apagar',
+                methods=None,
+                handler=CursoHandler,
+                handler_method='delete'
+            ),
+        ]
+
+
+class RelatorioHandler(Handler):
+    """
+    Classe responsável pelos Relatorios
+    """
+
+    def list_ents(self):
+        """Renderiza a lista de Relatorios"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             forms = Formulario.query()
@@ -905,8 +1498,8 @@ class RelatorioHandler(Handler):
         else:
             self.redirect('/login')
 
-    
     def list(self, id):
+        """Lista os relatorios e responde com um json"""
         id_admin = self.session.get('admin', '')
         if id_admin:
             query = Resultado.query(
@@ -934,87 +1527,32 @@ class RelatorioHandler(Handler):
             self.write(json.dumps(pa))
         else:
             self.redirect('/login')
-
-
-class CursoHandler(Handler):
-    def list_ents(self):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            self.render("Admin/listar_cursos.html")
-        else:
-            self.redirect('/login')
-
-    def list(self):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            self.json_encode(Curso.query())
-        else:
-            self.redirect('/login')
     
-    def view(self):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            self.render("Admin/criarcurso.html")
-        else:
-            self.redirect('/login')
-    
-    def post(self):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            nome = self.request.get('nome')
-            descricao = self.request.get('descricao')
-            contador = Contador.query(Contador.user_id == 1).get()
-            if not contador:
-                contador = Contador()
-            curso = Curso(
-                cod=contador.id_cursos,
-                nome=nome,
-                descricao=descricao,
-            )
-            contador.id_cursos += 1
-            contador.put()
-            curso.put()
-            time.sleep(.1)
-            self.redirect('/admin/cursos')
-        else:
-            self.redirect('/login')
-    
-    def view_update(self, id):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            curso = ndb.Key(Curso, int(id)).get()
-            page = {
-                "curso": curso
-            }
-            self.render("Admin/editarcurso.html", page=page)
-        else:
-            self.redirect('/login')
-
-    def put(self, id):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            nome = self.request.get('nome')
-            descricao = self.request.get('descricao')
-            curso = ndb.Key(Curso, int(id)).get()
-            curso.nome = nome
-            curso.descricao = descricao
-            curso.put()
-            time.sleep(.1)
-            self.redirect('/admin/cursos')
-        else:
-            self.redirect('/login')
-
-    def delete(self, id):
-        id_admin = self.session.get('admin', '')
-        if id_admin:
-            ndb.Key(Curso, int(id)).delete()
-            time.sleep(.1)
-            self.redirect('/admin/cursos')
-        else:
-            self.redirect('/login')
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='resulthandler.list_ents',
+                template=r'/admin/resultados',
+                methods='GET',
+                handler=RelatorioHandler,
+                handler_method='list_ents'
+            ),
+            Route(
+                name='resulthandler.list',
+                template=r'/resultados/<id:(\d+)>',
+                methods='GET',
+                handler=RelatorioHandler,
+                handler_method='list'
+            ),
+        ]
 
 
 class LogoutHandler(Handler):
+    """
+    Classe responsável pelo LogOut
+    """
     
     def get(self):
         if self.session:
@@ -1023,356 +1561,63 @@ class LogoutHandler(Handler):
             elif self.session.get('aluno',''):
                 self.session.pop('aluno')
         self.redirect('/')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='logout.get',
+                template=r'/logout',
+                methods='GET',
+                handler=LogoutHandler,
+                handler_method='get'
+            ),
+        ]
 
 
 class NotFoundPageHandler(Handler):
+    """
+    Classe responsável pelo Erro 404
+    """
+
     def get(self):
         self.redirect('/')
+    
+    @staticmethod
+    def list_methods():
+        """Retorna as rotas possiveis para essa Classe"""
+        return [
+            Route(
+                name='notfoundpagehandler.get',
+                template=r'/.*',
+                methods='GET',
+                handler=NotFoundPageHandler,
+                handler_method='get'
+            ),
+        ]
 
 
-app = WSGIApplication([
-    ('/logout', LogoutHandler),
-    ('/', LoginAlunoHandler),
-    ('/login', LoginHandler),
-    ('/professor', ProfessorHandler),
-    ('/alunos/formularios', AvaliacaoHandler),
-    ('/validar', ValidarCodigo),
-    ('/admin', AdministradorHandler),
-    Route(
-        name='points.get',
-        template=r'/alunos/points/<formulario:(\d+)>',
-        methods='GET',
-        handler=CodigoHandler,
-        handler_method='get'
-    ),
-    Route(
-        name='avalicsdafaohandler.get',
-        template=r'/alunos/formularios/<formulario:(\d+)>',
-        methods='GET',
-        handler=HandlerForm,
-        handler_method='get'
-    ),
-    Route(
-        name='avalicaohandler.get',
-        template=r'/alunos/pergunta/<formulario:(\d+)>/<id:(\d+)>',
-        methods='GET',
-        handler=AvaliacaoPerguntaHandler,
-        handler_method='get'
-    ),
-    Route(
-        name='avalicaohandler.post',
-        template=r'/alunos/pergunta/<formulario:(\d+)>/<id:(\d+)>',
-        methods='POST',
-        handler=AvaliacaoPerguntaHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='formhandler.list_ents',
-        template=r'/admin/formularios',
-        methods='GET',
-        handler=FormularioHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='formhandler.list',
-        template=r'/formularios',
-        methods='GET',
-        handler=FormularioHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='formhandler.view',
-        template=r'/formulario/view_criar',
-        methods=None,
-        handler=FormularioHandler,
-        handler_method='view'
-    ),
-    Route(
-        name='formhandler.post',
-        template=r'/formulario/criar',
-        methods=None,
-        handler=FormularioHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='formhandler.view_update',
-        template=r'/formulario/<id:(\d+)>/view_atualizar',
-        methods=None,
-        handler=FormularioHandler,
-        handler_method='view_update'
-    ),
-    Route(
-        name='formhandler.put',
-        template=r'/formulario/<id:(\d+)>/atualizar',
-        methods=None,
-        handler=FormularioHandler,
-        handler_method='put'
-    ),
-    Route(
-        name='formhandler.delete',
-        template=r'/formulario/<id:(\d+)>/apagar',
-        methods=None,
-        handler=FormularioHandler,
-        handler_method='delete'
-    ),
-    Route(
-        name='perghandler.list_ents',
-        template=r'/admin/perguntas',
-        methods='GET',
-        handler=PerguntaHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='perghandler.list',
-        template=r'/perguntas',
-        methods='GET',
-        handler=PerguntaHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='perghandler.view',
-        template=r'/pergunta/view_criar',
-        methods=None,
-        handler=PerguntaHandler,
-        handler_method='view'
-    ),
-    Route(
-        name='perghandler.post',
-        template=r'/pergunta/criar',
-        methods=None,
-        handler=PerguntaHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='perghandler.view_update',
-        template=r'/pergunta/<id:(\d+)>/view_atualizar',
-        methods=None,
-        handler=PerguntaHandler,
-        handler_method='view_update'
-    ),
-    Route(
-        name='perghandler.put',
-        template=r'/pergunta/<id:(\d+)>/atualizar',
-        methods=None,
-        handler=PerguntaHandler,
-        handler_method='put'
-    ),
-    Route(
-        name='perghandler.delete',
-        template=r'/pergunta/<id:(\d+)>/apagar',
-        methods=None,
-        handler=PerguntaHandler,
-        handler_method='delete'
-    ),
-    Route(
-        name='mathandler.list_ents',
-        template=r'/admin/materias',
-        methods='GET',
-        handler=MateriaHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='mathandler.list',
-        template=r'/materias',
-        methods='GET',
-        handler=MateriaHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='mathandler.view',
-        template=r'/materia/view_criar',
-        methods=None,
-        handler=MateriaHandler,
-        handler_method='view'
-    ),
-    Route(
-        name='mathandler.post',
-        template=r'/materia/criar',
-        methods=None,
-        handler=MateriaHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='mathandler.view_update',
-        template=r'/materia/<id:(\d+)>/view_atualizar',
-        methods=None,
-        handler=MateriaHandler,
-        handler_method='view_update'
-    ),
-    Route(
-        name='mathandler.put',
-        template=r'/materia/<id:(\d+)>/atualizar',
-        methods=None,
-        handler=MateriaHandler,
-        handler_method='put'
-    ),
-    Route(
-        name='mathandler.delete',
-        template=r'/materia/<id:(\d+)>/apagar',
-        methods=None,
-        handler=MateriaHandler,
-        handler_method='delete'
-    ),
-    Route(
-        name='aluhandler.list_ents',
-        template=r'/admin/alunos',
-        methods='GET',
-        handler=AlunoHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='aluhandler.list',
-        template=r'/alunos',
-        methods='GET',
-        handler=AlunoHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='aluhandler.view',
-        template=r'/aluno/view_criar',
-        methods=None,
-        handler=AlunoHandler,
-        handler_method='view'
-    ),
-    Route(
-        name='aluhandler.post',
-        template=r'/aluno/criar',
-        methods=None,
-        handler=AlunoHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='aluhandler.view_update',
-        template=r'/aluno/<id:(\d+)>/view_atualizar',
-        methods=None,
-        handler=AlunoHandler,
-        handler_method='view_update'
-    ),
-    Route(
-        name='aluhandler.put',
-        template=r'/aluno/<id:(\d+)>/atualizar',
-        methods=None,
-        handler=AlunoHandler,
-        handler_method='put'
-    ),
-    Route(
-        name='aluhandler.delete',
-        template=r'/aluno/<id:(\d+)>/apagar',
-        methods=None,
-        handler=AlunoHandler,
-        handler_method='delete'
-    ),
-    Route(
-        name='turmahandler.list_ents',
-        template=r'/admin/turmas',
-        methods='GET',
-        handler=TurmaHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='turmahandler.list',
-        template=r'/turmas',
-        methods='GET',
-        handler=TurmaHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='turmahandler.view',
-        template=r'/turma/view_criar',
-        methods=None,
-        handler=TurmaHandler,
-        handler_method='view'
-    ),
-    Route(
-        name='turmahandler.post',
-        template=r'/turma/criar',
-        methods=None,
-        handler=TurmaHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='turmahandler.view_update',
-        template=r'/turma/<id:(\d+)>/view_atualizar',
-        methods=None,
-        handler=TurmaHandler,
-        handler_method='view_update'
-    ),
-    Route(
-        name='turmahandler.put',
-        template=r'/turma/<id:(\d+)>/atualizar',
-        methods=None,
-        handler=TurmaHandler,
-        handler_method='put'
-    ),
-    Route(
-        name='turmahandler.delete',
-        template=r'/turma/<id:(\d+)>/apagar',
-        methods=None,
-        handler=TurmaHandler,
-        handler_method='delete'
-    ),
-    Route(
-        name='resulthandler.list_ents',
-        template=r'/admin/resultados',
-        methods='GET',
-        handler=RelatorioHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='resulthandler.list',
-        template=r'/resultados/<id:(\d+)>',
-        methods='GET',
-        handler=RelatorioHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='cursohandler.list_ents',
-        template=r'/admin/cursos',
-        methods='GET',
-        handler=CursoHandler,
-        handler_method='list_ents'
-    ),
-    Route(
-        name='cursohandler.list',
-        template=r'/cursos',
-        methods='GET',
-        handler=CursoHandler,
-        handler_method='list'
-    ),
-    Route(
-        name='cursohandler.view',
-        template=r'/curso/view_criar',
-        methods=None,
-        handler=CursoHandler,
-        handler_method='view'
-    ),
-    Route(
-        name='cursohandler.post',
-        template=r'/curso/criar',
-        methods=None,
-        handler=CursoHandler,
-        handler_method='post'
-    ),
-    Route(
-        name='cursohandler.view_update',
-        template=r'/curso/<id:(\d+)>/view_atualizar',
-        methods=None,
-        handler=CursoHandler,
-        handler_method='view_update'
-    ),
-    Route(
-        name='cursohandler.put',
-        template=r'/curso/<id:(\d+)>/atualizar',
-        methods=None,
-        handler=CursoHandler,
-        handler_method='put'
-    ),
-    Route(
-        name='cursohandler.delete',
-        template=r'/curso/<id:(\d+)>/apagar',
-        methods=None,
-        handler=CursoHandler,
-        handler_method='delete'
-    ),
-    ('/.*', NotFoundPageHandler),
-], config={'webapp2_extras.sessions': {'secret_key': 'my-super-secret-key',}}, debug=True)
+app = WSGIApplication( # Classe responsvel por administrar as rotas de requisição
+    LoginAlunoHandler.list_methods() + \
+    AvaliacaoHandler.list_methods() + \
+    AvaliacaoPerguntaHandler.list_methods() + \
+    CodigoHandler.list_methods() + \
+    ProfessorHandler.list_methods() + \
+    ValidarCodigo.list_methods() + \
+    LoginHandler.list_methods() + \
+    FormularioHandler.list_methods() + \
+    PerguntaHandler.list_methods() + \
+    MateriaHandler.list_methods() + \
+    AlunoHandler.list_methods() + \
+    TurmaHandler.list_methods() + \
+    RelatorioHandler.list_methods() + \
+    CursoHandler.list_methods() + \
+    LogoutHandler.list_methods() + \
+    NotFoundPageHandler.list_methods(),
+    config={
+        'webapp2_extras.sessions': { #Configurações de sessios
+            'secret_key':'b3bdd91a1ffe1e7d9dcd699166efa4c3f2eb8ed9a3921cd95ea4c81fad043b5b',
+            'session_max_age':7200,
+            }
+        }, debug=True)
